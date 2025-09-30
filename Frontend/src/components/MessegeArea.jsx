@@ -7,8 +7,15 @@ import MoodIcon from "@mui/icons-material/Mood";
 
 const MessegeArea = ({ Id, setId }) => {
   const [SenderM, setSenderM] = useState([
-    { messege: "Hello", messenger: "sender" },
-    { messege: "Hi!", messenger: "receiver" },
+    {
+      messege: "Hello??",
+      messenger: "sender",
+    },
+    {
+      messege:
+        "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Asperiores eum perspiciatis commodi sint aliquid dicta magnam pariatur et ipsa voluptate ea, qui sit consectetur explicabo nam tempora esse reiciendis blanditiis?",
+      messenger: "receiver",
+    },
   ]);
   const [text, setText] = useState("");
   const [showPicker, setShowPicker] = useState(false);
@@ -65,14 +72,16 @@ const MessegeArea = ({ Id, setId }) => {
             key={index}
             className={`flex ${
               messege.messenger === "sender" ? "justify-start" : "justify-end"
-            }`}
+            } mb-2`}
           >
             <p
-              className={`border p-2 rounded-lg max-w-[70%] ${
-                messege.messenger === "sender"
-                  ? "bg-gray-200"
-                  : "bg-blue-500 text-white"
-              }`}
+              className={`p-3 rounded-2xl text-sm leading-relaxed max-w-[70%] break-words 
+             shadow-md transition-all duration-200
+             ${
+               messege.messenger === "sender"
+                 ? "bg-gray-100 text-gray-900" // sender bubble (light gray)
+                 : "bg-white text-gray-900 border border-gray-200" // receiver bubble (white)
+             }`}
             >
               {messege.messege}
             </p>

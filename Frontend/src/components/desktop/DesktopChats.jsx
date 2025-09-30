@@ -63,10 +63,7 @@ const DesktopChats = ({ setId }) => {
             <div className="">
               <h4 className="text-[1.4rem]">{friend.name}</h4>
               <h5 className="truncate w-[170px] md:w-[65vw] lg:w-[170px]">
-                {friend.messege} Lorem ipsum dolor sit amet consectetur
-                adipisicing elit. Magni placeat cum eligendi asperiores eius
-                minima voluptas alias dolor! Ab veritatis similique fuga nostrum
-                aspernatur quas atque repudiandae minima nemo tempore!
+                {friend.messege}
               </h5>
             </div>
           </div>
