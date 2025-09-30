@@ -1,5 +1,5 @@
 import React from "react";
-import MoreVertOutlinedIcon from "@mui/icons-material/MoreVertOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 const Navbar = () => {
   return (
@@ -8,9 +8,13 @@ const Navbar = () => {
         <div className="">
           <h4 className="text-[2rem] font-bold text-[#08CB00]">ChitChat</h4>
         </div>
-        <div className="flex items-center gap-3 p-2 bg-white transition-shadow duration-300 cursor-pointer">
-          <h1 className="text-[1.3rem] font-semibold text-gray-800">David</h1>
-          <div className="w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-[#08CB00]">
+        <div className="flex items-center gap-3 p-2 bg-white transition-shadow duration-300">
+          <div className="cursor-pointer relative w-fit">
+            <FavoriteBorderIcon fontSize="large" sx={{ color: "#334443" }} />
+            <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-[#DD0303] border-2 border-white"></span>
+          </div>
+
+          <div className="w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-[#08CB00] cursor-pointer">
             <img
               className="w-full h-full object-cover"
               src="https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA.."
