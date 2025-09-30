@@ -13,7 +13,7 @@ const Desktop = ({ Id, setId }) => {
           <Navbar />
         </div>
 
-        <div className="mt-[120px] ">
+        <div className="mt-[125px] ">
           <DesktopChats setId={setId} />
         </div>
       </div>

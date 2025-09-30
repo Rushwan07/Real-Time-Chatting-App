@@ -8,6 +8,8 @@ import {
   Route,
   useParams,
 } from "react-router-dom";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 
 function App() {
   const [Id, setId] = useState(null);
@@ -18,6 +20,10 @@ function App() {
   }
   return (
     <Router>
+      <Routes>
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
       <div className="block lg:hidden">
         <Routes>
           <Route path="/" element={<Mobile />} />

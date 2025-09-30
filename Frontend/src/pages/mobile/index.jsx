@@ -9,7 +9,7 @@ const Mobile = () => {
           <Navbar />
         </div>
 
-        <div className="mt-[120px]">
+        <div className="mt-[125px]">
           <Chats />
         </div>
       </div>
