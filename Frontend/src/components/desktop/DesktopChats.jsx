@@ -1,7 +1,7 @@
 import React from "react";
 import MessegeArea from "../MessegeArea";
 
-const DesktopChats = ({ setId }) => {
+const DesktopChats = ({ setId, closeProfile, profileStatus }) => {
   const friends = [
     {
       name: "Jack",
@@ -18,26 +18,7 @@ const DesktopChats = ({ setId }) => {
       messege: "I have completed that ai model",
       url: "https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA..",
     },
-    {
-      name: "David",
-      messege: "I have completed that ai model",
-      url: "https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA..",
-    },
-    {
-      name: "David",
-      messege: "I have completed that ai model",
-      url: "https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA..",
-    },
-    {
-      name: "David",
-      messege: "I have completed that ai model",
-      url: "https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA..",
-    },
-    {
-      name: "David",
-      messege: "I have completed that ai model",
-      url: "https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA..",
-    },
+
   ];
 
   // const handleMessegearea = (index) => {
@@ -48,7 +29,9 @@ const DesktopChats = ({ setId }) => {
     <div>
       {friends.map((friend, index) => (
         <div
-          onClick={() => setId(index)}
+          onClick={() => {
+            setId(index), closeProfile(false);
+          }}
           className="chat w-full p-3 flex justify-between items-center cursor-pointer mt-2"
         >
           <div className="flex gap-2 w-[80%]">

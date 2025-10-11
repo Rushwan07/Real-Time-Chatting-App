@@ -34,6 +34,22 @@ const Signup = () => {
             placeholder="Password"
           />
 
+          <div className="relative w-full">
+            <input
+              id="profileUpload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => console.log(e.target.files[0])}
+            />
+            <label
+              htmlFor="profileUpload"
+              className="block w-full text-center border-2 border-dashed border-gray-300 hover:border-[#08CB00] text-gray-500 hover:text-[#08CB00] py-3 rounded-lg cursor-pointer transition-all"
+            >
+              📸 Upload Profile Photo
+            </label>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-[#08CB00] text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-600 transition-all"

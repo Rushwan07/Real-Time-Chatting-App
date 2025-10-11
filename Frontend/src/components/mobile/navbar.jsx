@@ -1,7 +1,8 @@
 import React from "react";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-const Navbar = () => {
+
+const Navbar = ({ closeProfile }) => {
   return (
     <div className="p-3">
       <div className="nav flex justify-between items-center p-1">
@@ -14,7 +15,10 @@ const Navbar = () => {
             <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-[#DD0303] border-2 border-white"></span>
           </div>
 
-          <div className="w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-[#08CB00] cursor-pointer">
+          <div
+            className="w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-[#08CB00] cursor-pointer"
+            onClick={() => closeProfile(true)}
+          >
             <img
               className="w-full h-full object-cover"
               src="https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA.."

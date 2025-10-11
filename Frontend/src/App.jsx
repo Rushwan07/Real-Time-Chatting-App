@@ -13,10 +13,11 @@ import Login from "./pages/Login";
 
 function App() {
   const [Id, setId] = useState(null);
+  const [profileStatus, closeProfile] = useState(false);
 
   function MessegeAreaWrapper() {
-    const { id } = useParams(); // get the id from URL
-    return <MessegeArea Id={id} setId={setId} />; // pass it as prop
+    const { id } = useParams();
+    return <MessegeArea Id={id} setId={setId} />;
   }
   return (
     <Router>
@@ -26,14 +27,32 @@ function App() {
       </Routes>
       <div className="block lg:hidden">
         <Routes>
-          <Route path="/" element={<Mobile />} />
+          <Route
+            path="/"
+            element={
+              <Mobile
+                profileStatus={profileStatus}
+                closeProfile={closeProfile}
+              />
+            }
+          />
           <Route path="/MessegeArea/:id" element={<MessegeAreaWrapper />} />
         </Routes>
       </div>
 
       <div className="hidden lg:block">
         <Routes>
-          <Route path="/" element={<Desktop setId={setId} Id={Id} />} />
+          <Route
+            path="/"
+            element={
+              <Desktop
+                setId={setId}
+                Id={Id}
+                profileStatus={profileStatus}
+                closeProfile={closeProfile}
+              />
+            }
+          />
         </Routes>
       </div>
     </Router>
