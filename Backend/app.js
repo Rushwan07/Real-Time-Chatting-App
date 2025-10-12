@@ -4,8 +4,10 @@ const cors = require("cors");
 const AppError = require("./src/utils/appError");
 const globalErrorHandler = require("./src/controllers/errorController");
 
+const userRouter = require("./src/routes/userRoutes");
+
+
 const app = express();
-let weekCounter = 0;
 
 app.use(
   cors({
@@ -20,6 +22,10 @@ app.use(express.json());
 cron.schedule("0 9 * * *", () => {
   sendGmail();
 });
+
+
+app.use("/api/v1/users", userRouter);
+
 
 
 app.get("/", (req, res) => {
