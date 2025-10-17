@@ -5,6 +5,8 @@ const AppError = require("./src/utils/appError");
 const globalErrorHandler = require("./src/controllers/errorController");
 
 const userRouter = require("./src/routes/userRoutes");
+const messageRouter = require("./src/routes/messageRoutes");
+const friendshipRouter = require("./src/routes/friendRoutes");
 
 
 const app = express();
@@ -25,7 +27,8 @@ cron.schedule("0 9 * * *", () => {
 
 
 app.use("/api/v1/users", userRouter);
-
+app.use("/api/v1/messages", messageRouter);
+app.use("/api/v1/friends", friendshipRouter);
 
 
 app.get("/", (req, res) => {

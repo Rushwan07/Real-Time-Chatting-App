@@ -1,7 +1,87 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { setUser } from "../features/Auth/userSlice";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import useFirebaseUpload from "../hooks/use-firebaseUploads";
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [file, setFile] = useState(null); // stores File object
+  const [imageURL, setImageURL] = useState(""); // stores uploaded Firebase URL
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  // Firebase upload hook
+  const { progress, error, downloadURL } = useFirebaseUpload(file);
+
+  useEffect(() => {
+    if (downloadURL) {
+      setImageURL(downloadURL); // save Firebase URL separately
+    }
+  }, [downloadURL]);
+
+  const handleSignup = async () => {
+    try {
+      if (!name.trim() || !email.trim() || !password.trim()) {
+        toast.error("Enter valid credentials");
+        return;
+      }
+
+      if (password.trim().length < 8) {
+        toast.error("Password length must be greater than 8", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          style: {
+            backgroundColor: "#FF4C4C",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "10px",
+            padding: "16px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          },
+          icon: "⚠️",
+        });
+        return;
+      }
+
+      // Ensure image is uploaded before sending signup
+      if (file && !imageURL) {
+        toast.info("Please wait for image upload to complete!");
+        return;
+      }
+
+      const res = await axios.post(BASE_URL + "/users/signup", {
+        username: name,
+        email: email.trim(),
+        password: password,
+        image: imageURL || "", // send Firebase URL
+      });
+
+      toast.success("User created successfully");
+
+      // Update Redux
+      dispatch(setUser(res.data.data.user));
+
+      navigate("/"); // redirect
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong!");
+      console.log(error);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
@@ -21,16 +101,22 @@ const Signup = () => {
           <input
             className="w-full border-2 border-gray-200 focus:border-[#08CB00] focus:ring-1 focus:ring-[#08CB00] p-3 rounded-lg outline-none transition-all"
             type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="Username"
           />
           <input
             className="w-full border-2 border-gray-200 focus:border-[#08CB00] focus:ring-1 focus:ring-[#08CB00] p-3 rounded-lg outline-none transition-all"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
           />
           <input
             className="w-full border-2 border-gray-200 focus:border-[#08CB00] focus:ring-1 focus:ring-[#08CB00] p-3 rounded-lg outline-none transition-all"
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
           />
 
@@ -40,7 +126,8 @@ const Signup = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => console.log(e.target.files[0])}
+              onChange={(e) => setFile(e.target.files[0])}
+              required
             />
             <label
               htmlFor="profileUpload"
@@ -48,10 +135,16 @@ const Signup = () => {
             >
               📸 Upload Profile Photo
             </label>
+            {progress > 0 && (
+              <p className="text-sm text-[#08CB00] mt-1">
+                Uploading: {progress.toFixed(0)}%
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
+            onClick={handleSignup}
             className="w-full bg-[#08CB00] text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-600 transition-all"
           >
             Create Account
