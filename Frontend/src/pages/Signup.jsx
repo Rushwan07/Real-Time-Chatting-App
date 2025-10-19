@@ -70,12 +70,22 @@ const Signup = () => {
         image: imageURL || "", // send Firebase URL
       });
 
-      toast.success("User created successfully");
+      toast.success(
+        "Please check your email, We have sended you a mail to verify your email",
+        {
+          position: "top-right",
+          autoClose: 20000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        }
+      );
 
       // Update Redux
-      dispatch(setUser(res.data.data.user));
-
-      navigate("/"); // redirect
+      // dispatch(setUser(res.data.data.user));
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong!");
       console.log(error);

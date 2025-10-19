@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { setUser } from "../features/Auth/userSlice";
 import axios from "axios";
@@ -10,7 +10,9 @@ const Login = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+
+
 
   const handleSignin = async () => {
     try {

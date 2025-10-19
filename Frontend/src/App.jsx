@@ -14,6 +14,7 @@ import {
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import { useSelector } from "react-redux";
+import Messege from "./pages/Messege";
 
 function App() {
   const { user } = useSelector((state) => state.user);
@@ -31,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify/:token" element={<Messege />} />
         </Routes>
         <div className="block lg:hidden">
           <Routes>

@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const dotenv = require("dotenv");
+const nodemailer = require('nodemailer');
+
 dotenv.config();
 
 const createToken = (userId, email) => {
@@ -13,6 +15,14 @@ const createToken = (userId, email) => {
         { expiresIn: process.env.LOGIN_EXPIRES }
     );
 };
+
+const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+    },
+});
 
 exports.signup = catchAsync(async (req, res, next) => {
     const { email, username, password, image } = req.body;
@@ -40,6 +50,13 @@ exports.signup = catchAsync(async (req, res, next) => {
 
     const token = createToken(newUser._id, newUser.email);
 
+    const url = `http://localhost:5173/verify/${token}`;
+    await transporter.sendMail({
+        to: email,
+        subject: 'Hello from ChitChat, Verify Your Email',
+        html: `Click <a href="${url}">here</a> to verify your email.`,
+    });
+
     newUser.password = undefined;
 
     res.status(201).json({
@@ -47,6 +64,28 @@ exports.signup = catchAsync(async (req, res, next) => {
         token,
         data: { user: newUser },
     });
+});
+
+exports.verifyEmail = catchAsync(async (req, res, next) => {
+    try {
+        const { token } = req.params;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id); 
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid token or user does not exist.' });
+        }
+
+        user.isVerified = true;
+        await user.save();
+
+        res.status(200).json({
+            status: "success",
+            token,
+            data: { user },
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 
@@ -74,7 +113,7 @@ exports.signin = catchAsync(async (req, res, next) => {
     const token = createToken(user._id, user.email);
 
     user.password = undefined;
-    
+
 
     res.status(200).json({
         status: "success",
@@ -98,3 +137,32 @@ exports.signout = catchAsync(async (req, res, next) => {
         message: "User successfully signed out.",
     });
 });
+
+
+exports.editUser = catchAsync(async (req, res, next) => {
+    const { image, email } = req.body;
+
+    // 1. Check for image
+    if (!image) {
+        return next(new AppError("Please provide an image URL", 400));
+    }
+    const user = await User.findOne({ email })
+    if (!user) {
+        return next(new AppError("User not found", 401));
+    }
+
+    // 3. Update and save
+    user.image = image;
+    await user.save();
+
+    // 4. Send response
+    res.status(200).json({
+        status: "success",
+        message: "Profile image updated successfully",
+        data: {
+            user,
+        },
+    });
+});
+
+

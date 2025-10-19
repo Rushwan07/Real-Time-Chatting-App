@@ -1,8 +1,11 @@
 import React from "react";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import { useSelector } from "react-redux";
 
 const Navbar = ({ closeProfile }) => {
+  const { user } = useSelector((state) => state.user);
+
   return (
     <div className="p-3">
       <div className="nav flex justify-between items-center p-1">
@@ -21,7 +24,7 @@ const Navbar = ({ closeProfile }) => {
           >
             <img
               className="w-full h-full object-cover"
-              src="https://images.pexels.com/photos/9604299/pexels-photo-9604299.jpeg?_gl=1*xfu4kg*_ga*NjM2NzQyODgxLjE2Njg2MDcxNjc.*_ga_8JE65Q40S6*czE3NTYxMzI1OTckbzU4JGcxJHQxNzU2MTMyNjM2JGoyMSRsMCRoMA.."
+              src={user?.image}
               alt="profile"
             />
           </div>

@@ -1,31 +1,36 @@
 const jwt = require("jsonwebtoken");
 const catchAsync = require("./catchAsync");
-const appError = require("./appError");
-const User = require("../models/userModel");
+const User = require("../models/userModel"); // your user model
+const AppError = require("../utils/appError");
 
 exports.verifyToken = catchAsync(async (req, res, next) => {
-  const testToken = req.cookies.token;
+  const authHeader = req.headers.token;
 
-  let token;
-  if (testToken && testToken.startsWith("bearer")) {
-    token = testToken.split(" ")[1];
-  }
+  console.log("authHeader", authHeader)
 
-  if (!token) {
-    return res.status(200).json({
-      status: "success",
-      message: "You are not loggedin",
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res.status(401).json({
+      status: "failed",
+      message: "You are not logged in",
     });
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRECT);
-  const name = await User.findById(decoded.id);
-  req.user = {
-    name: name.name,
-    id: decoded.id,
-    email: decoded.email,
-    role: decoded.role,
-  };
+  const token = authHeader.split(" ")[1];
+
+  // Verify JWT
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  // Find the user in DB
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    return res.status(401).json({
+      status: "failed",
+      message: "User no longer exists",
+    });
+  }
+
+  // Attach full user object
+  req.user = user;
 
   next();
 });

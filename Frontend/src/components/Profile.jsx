@@ -1,43 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import EditIcon from "@mui/icons-material/Edit";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { setUser } from "../features/Auth/userSlice";
 import { persistor } from "../app/store";
-import SettingsIcon from "@mui/icons-material/Settings";
+import useFirebaseUpload from "../hooks/use-firebaseUploads";
+import axios from "axios";
 
-const Profile = ({ profileStatus, closeProfile }) => {
+const Profile = ({ closeProfile }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
-  const [open, setOpen] = useState(false);
 
-  const handleOptionClick = (value) => {
-    if (value === "logout") {
-      console.log("Logout clicked");
-    } else if (value === "about") {
-      alert("About Me clicked");
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState(null);
+  const [imageURL, setImageURL] = useState(user?.image || "");
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  // Firebase upload hook
+  const { progress, error, downloadURL } = useFirebaseUpload(file);
+
+  // When upload finishes, update preview + backend
+  useEffect(() => {
+    if (downloadURL) {
+      setImageURL(downloadURL);
+      updateUserImage(downloadURL);
     }
-    setOpen(false); // close dropdown after click
+  }, [downloadURL]);
+
+  const updateUserImage = async (newImageURL) => {
+    console.log("newImageURL", newImageURL);
+    try {
+      const res = await axios.patch(BASE_URL + "/users/updateProfile", {
+        image: newImageURL || "",
+        email: user?.email,
+      });
+
+      // Update Redux store
+      dispatch(setUser({ ...user, image: newImageURL }));
+
+      toast.success("Profile picture updated!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Something went wrong!");
+    }
   };
 
   const handleSignOut = () => {
     try {
-      // Clear redux state
       dispatch(setUser({}));
-
-      // Clear localStorage
       localStorage.removeItem("user");
-
-      // Clear persisted state (if using redux-persist)
       persistor.purge();
-
-      // Redirect to login page
       navigate("/login");
-
-      // Show toast
       toast.success("Logout successful", {
         position: "top-right",
         autoClose: 3000,
@@ -48,21 +66,26 @@ const Profile = ({ profileStatus, closeProfile }) => {
     }
   };
 
-  const [isEditingImage, setIsEditingImage] = useState(false);
+  const handleOptionClick = (value) => {
+    if (value === "logout") handleSignOut();
+    else if (value === "about") alert("About Me clicked");
+    setOpen(false);
+  };
+
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b-2 justify-between">
         <div className="cursor-pointer p-3 flex items-center">
           <ArrowBackIosIcon
-            onClick={() => {
-              closeProfile(false);
-            }}
+            onClick={() => closeProfile(false)}
             sx={{ color: "#08CB00" }}
           />
           <div className="text-[1.5rem]">Profile</div>
         </div>
+
+        {/* Settings Dropdown */}
         <div className="relative inline-block">
-          {/* Icon Trigger */}
           <button
             onClick={() => setOpen((prev) => !prev)}
             className="flex items-center p-2 rounded-full hover:bg-gray-100 transition"
@@ -70,7 +93,6 @@ const Profile = ({ profileStatus, closeProfile }) => {
             <SettingsIcon sx={{ fontSize: 30 }} />
           </button>
 
-          {/* Dropdown Menu */}
           {open && (
             <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
               <button
@@ -80,7 +102,7 @@ const Profile = ({ profileStatus, closeProfile }) => {
                 About Me
               </button>
               <button
-                onClick={handleSignOut}
+                onClick={() => handleOptionClick("logout")}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 transition"
               >
                 Logout
@@ -89,13 +111,14 @@ const Profile = ({ profileStatus, closeProfile }) => {
           )}
         </div>
       </div>
+
+      {/* Profile Content */}
       <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-white rounded-2xl shadow-lg max-w-4xl mx-auto mt-10 transition-all duration-300">
-        {/* Profile Image Section */}
+        {/* Profile Image */}
         <div className="relative w-[50vw] max-w-[300px] h-[50vw] max-h-[300px] rounded-full overflow-hidden shadow-xl border-4 cursor-pointer group">
-          {/* Profile Image */}
           <img
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            src={user?.image}
+            src={imageURL || "/default-avatar.png"}
             alt="profile"
           />
 
@@ -110,12 +133,17 @@ const Profile = ({ profileStatus, closeProfile }) => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => console.log(e.target.files[0])}
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setFile(e.target.files[0]);
+                  toast.info("Uploading image...", { autoClose: 1500 });
+                }
+              }}
             />
           </div>
         </div>
 
-        {/* User Info Section */}
+        {/* User Info */}
         <div className="text-center md:text-left space-y-4">
           <h1 className="text-4xl font-bold text-[#08CB00] tracking-wide">
             {user?.username}
@@ -124,6 +152,12 @@ const Profile = ({ profileStatus, closeProfile }) => {
           <p className="text-2xl text-gray-600 font-medium">
             Friends: <span className="text-[#08CB00] font-semibold">20</span>
           </p>
+
+          {progress > 0 && (
+            <p className="text-sm text-[#08CB00] mt-1">
+              Uploading: {progress.toFixed(0)}%
+            </p>
+          )}
         </div>
       </div>
     </div>
