@@ -142,7 +142,12 @@ const Profile = ({ closeProfile }) => {
             />
           </div>
         </div>
-
+        {file && progress > 0 && progress < 100 && (
+          <p className="text-sm text-gray-500 mt-1">Uploading: {progress}%</p>
+        )}
+        {progress === 100 && (
+          <p className="text-sm text-green-600 mt-1">Upload complete ✅</p>
+        )}
         {/* User Info */}
         <div className="text-center md:text-left space-y-4">
           <h1 className="text-4xl font-bold text-[#08CB00] tracking-wide">
@@ -150,14 +155,11 @@ const Profile = ({ closeProfile }) => {
           </h1>
           <h2 className="text-3xl text-gray-700 font-medium">{user?.email}</h2>
           <p className="text-2xl text-gray-600 font-medium">
-            Friends: <span className="text-[#08CB00] font-semibold">20</span>
+            Friends:{" "}
+            <span className="text-[#08CB00] font-semibold">
+              {user?.friends?.length}
+            </span>
           </p>
-
-          {progress > 0 && (
-            <p className="text-sm text-[#08CB00] mt-1">
-              Uploading: {progress.toFixed(0)}%
-            </p>
-          )}
         </div>
       </div>
     </div>

@@ -6,13 +6,12 @@ import { setUser } from "../features/Auth/userSlice";
 import axios from "axios";
 
 const Login = () => {
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-
-
 
   const handleSignin = async () => {
     try {

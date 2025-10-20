@@ -70,7 +70,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     try {
         const { token } = req.params;
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id); 
+        const user = await User.findById(decoded.id);
         if (!user) {
             return res.status(400).json({ error: 'Invalid token or user does not exist.' });
         }

@@ -20,13 +20,6 @@ const Signup = () => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   // Firebase upload hook
-  const { progress, error, downloadURL } = useFirebaseUpload(file);
-
-  useEffect(() => {
-    if (downloadURL) {
-      setImageURL(downloadURL); // save Firebase URL separately
-    }
-  }, [downloadURL]);
 
   const handleSignup = async () => {
     try {
@@ -91,6 +84,13 @@ const Signup = () => {
       console.log(error);
     }
   };
+  const { progress, error, downloadURL } = useFirebaseUpload(file);
+
+  useEffect(() => {
+    if (downloadURL) {
+      setImageURL(downloadURL); // save Firebase URL separately
+    }
+  }, [downloadURL]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
@@ -145,10 +145,13 @@ const Signup = () => {
             >
               📸 Upload Profile Photo
             </label>
-            {progress > 0 && (
-              <p className="text-sm text-[#08CB00] mt-1">
-                Uploading: {progress.toFixed(0)}%
+            {file && progress > 0 && progress < 100 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Uploading: {progress}%
               </p>
+            )}
+            {progress === 100 && (
+              <p className="text-sm text-green-600 mt-1">Upload complete ✅</p>
             )}
           </div>
 

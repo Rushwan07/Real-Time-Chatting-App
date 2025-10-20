@@ -14,45 +14,41 @@ const useFirebaseUpload = (file) => {
   const [fileName, setFileName] = useState(null);
 
   useEffect(() => {
-    if (!file?.name) return;
+    if (!file) return;
 
     const storage = getStorage(app);
-    const fileName = `${new Date().getTime()}-${file.name}`;
-    const storageRef = ref(storage, fileName);
+    const uniqueName = `${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, `profileImages/${uniqueName}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
+
     setFileName(file.name);
+    setProgress(0);
+    setError(null);
+    setDownloadURL(null);
 
-    const handleUpload = () => {
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setProgress(Math.floor(progress));
-        },
-        (error) => {
-          console.error("Upload error:", error);
-          setError(error);
-        },
-        async () => {
-          try {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // update progress
+        const percent = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+        // Force re-render — ensures even small progress changes appear
+        requestAnimationFrame(() => setProgress(percent));
+      },
+      (err) => {
+        console.error("Upload error:", err);
+        setError(err.message);
+      },
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        setDownloadURL(url);
+        setProgress(100);
+      }
+    );
 
-            setDownloadURL(downloadUrl);
-          } catch (error) {
-            console.error("Error getting download URL:", error);
-            setError(error);
-          }
-        }
-      );
-    };
-
-    handleUpload();
-
-    return () => {
-      // Cancel the upload if the component unmounts or the file changes
-      uploadTask.cancel();
-    };
+    // clean up listener on unmount
+    return () => uploadTask.cancel?.();
   }, [file]);
 
   return { progress, error, downloadURL, fileName };
