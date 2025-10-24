@@ -73,7 +73,13 @@ const Login = () => {
         theme: "dark",
       });
       if (res) {
-        dispatch(setUser(res.data.data.user));
+        // dispatch(setUser(res.data.data.user));
+        dispatch(
+          setUser({
+            user: res?.data?.data?.user,
+            token: res?.data?.token,
+          })
+        );
         navigate("/");
       }
     } catch (error) {

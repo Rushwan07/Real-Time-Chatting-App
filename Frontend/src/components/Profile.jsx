@@ -13,8 +13,10 @@ import axios from "axios";
 const Profile = ({ closeProfile }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
-
+  const { user, token } = useSelector((state) => {
+    const user = state?.user?.user;
+    return user;
+  });
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [imageURL, setImageURL] = useState(user?.image || "");
@@ -33,15 +35,24 @@ const Profile = ({ closeProfile }) => {
   }, [downloadURL]);
 
   const updateUserImage = async (newImageURL) => {
-    console.log("newImageURL", newImageURL);
     try {
-      const res = await axios.patch(BASE_URL + "/users/updateProfile", {
-        image: newImageURL || "",
-        email: user?.email,
-      });
+      const res = await axios.patch(
+        BASE_URL + "/users/updateProfile",
+        {
+          image: newImageURL || "",
+          email: user?.email,
+        },
+        {
+          headers: { token },
+        }
+      );
 
-      // Update Redux store
-      dispatch(setUser({ ...user, image: newImageURL }));
+      dispatch(
+        setUser({
+          user: { ...user, image: newImageURL },
+          token: token,
+        })
+      );
 
       toast.success("Profile picture updated!");
     } catch (err) {

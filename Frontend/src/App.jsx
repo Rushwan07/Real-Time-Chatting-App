@@ -17,7 +17,7 @@ import { useSelector } from "react-redux";
 import Messege from "./pages/Messege";
 
 function App() {
-  const { user } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user?.user);
   console.log("USER>>>", user);
 
   const [Id, setId] = useState(null);

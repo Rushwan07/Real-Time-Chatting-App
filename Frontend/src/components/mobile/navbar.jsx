@@ -4,7 +4,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { useSelector } from "react-redux";
 
 const Navbar = ({ closeProfile }) => {
-  const { user } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user?.user);
 
   return (
     <div className="p-3">

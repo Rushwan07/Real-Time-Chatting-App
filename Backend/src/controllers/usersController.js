@@ -61,8 +61,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
         status: "success",
-        token,
         data: { user: newUser },
+        token: "bearer " + token,
+
     });
 });
 
@@ -80,8 +81,9 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
 
         res.status(200).json({
             status: "success",
-            token,
             data: { user },
+            token: "bearer " + token,
+
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -119,6 +121,7 @@ exports.signin = catchAsync(async (req, res, next) => {
         status: "success",
         token,
         data: { user },
+        token: "bearer " + token,
     });
 });
 
@@ -140,22 +143,22 @@ exports.signout = catchAsync(async (req, res, next) => {
 
 
 exports.editUser = catchAsync(async (req, res, next) => {
-    const { image, email } = req.body;
+    const { image } = req.body;
 
-    // 1. Check for image
     if (!image) {
         return next(new AppError("Please provide an image URL", 400));
     }
-    const user = await User.findOne({ email })
+
+    const user = await User.findById(req.user.id);
+
+
     if (!user) {
-        return next(new AppError("User not found", 401));
+        return next(new AppError("User not found", 404));
     }
 
-    // 3. Update and save
     user.image = image;
     await user.save();
 
-    // 4. Send response
     res.status(200).json({
         status: "success",
         message: "Profile image updated successfully",
@@ -164,5 +167,6 @@ exports.editUser = catchAsync(async (req, res, next) => {
         },
     });
 });
+
 
 

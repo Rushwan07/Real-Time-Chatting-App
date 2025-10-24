@@ -5,10 +5,7 @@ const AppError = require("../utils/appError");
 
 exports.verifyToken = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.token;
-
-  console.log("authHeader", authHeader)
-
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
+  if (!authHeader || !authHeader.startsWith("bearer")) {
     return res.status(401).json({
       status: "failed",
       message: "You are not logged in",

@@ -8,6 +8,6 @@ router.post("/signup", userController.signup);
 router.post("/signin", userController.signin);
 router.get('/verify/:token', userController.verifyEmail);
 router.get("/signout", userController.signout);
-router.patch("/updateProfile", userController.editUser);
+router.patch("/updateProfile", verifyToken, userController.editUser);
 
 module.exports = router; 

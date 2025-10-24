@@ -20,9 +20,13 @@ const Messege = () => {
         const res = await axios.get(`${BASE_URL}/users/verify/${token}`);
 
         // Update Redux store
-        dispatch(setUser(res.data.data.user));
-        // Store JWT in localStorage
-        localStorage.setItem("token", res.data.token);
+        dispatch(
+          setUser({
+            user: res?.data?.data?.user,
+            token: res?.data?.token,
+          })
+        ); // Store JWT in localStorage
+        localStorage.setItem("token", res.data?.token);
 
         toast.success("Email verified successfully!");
         setLoading(false);
