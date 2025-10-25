@@ -169,4 +169,29 @@ exports.editUser = catchAsync(async (req, res, next) => {
 });
 
 
+exports.searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+        const currentUserId = req.user.id;
+
+        if (!query || query.trim() === "") {
+            return res.status(400).json({ message: "Query is required." });
+        }
+
+        // Case-insensitive search for username or email
+        const users = await User.find({
+            _id: { $ne: currentUserId }, // exclude current user
+            $or: [
+                { username: { $regex: query, $options: "i" } },
+                { email: { $regex: query, $options: "i" } },
+            ],
+        }).select("_id username email image friends"); // select only required fields
+
+        res.status(200).json({ message: "Users fetched successfully", users });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 

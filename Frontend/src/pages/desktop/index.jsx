@@ -4,14 +4,23 @@ import MessegeArea from "../../components/MessegeArea";
 import DesktopChats from "../../components/desktop/DesktopChats";
 import Profile from "../../components/Profile";
 
-const Desktop = ({ Id, setId, profileStatus, closeProfile }) => {
+const Desktop = ({
+  Id,
+  setId,
+  profileStatus,
+  closeProfile,
+  friends,
+  setSearchInput,
+  searchInput,
+  loading,
+}) => {
   console.log("idState", Id);
   return (
     <div className="flex gap-2 ">
       <div className="w-[30%] h-[100vh] overflow-hidden border-r-2">
         <div className="bg-white fixed top-0 left-0 w-[30%]  z-50 border-r-2">
           {" "}
-          <Navbar closeProfile={closeProfile} />
+          <Navbar closeProfile={closeProfile} setSearchInput={setSearchInput} searchInput={searchInput} />
         </div>
 
         <div className="mt-[125px] ">
@@ -19,6 +28,7 @@ const Desktop = ({ Id, setId, profileStatus, closeProfile }) => {
             setId={setId}
             profileStatus={profileStatus}
             closeProfile={closeProfile}
+            friends={friends}
           />
         </div>
       </div>

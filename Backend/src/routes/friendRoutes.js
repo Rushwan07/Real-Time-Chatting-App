@@ -8,5 +8,6 @@ router.post("/request/:receiverId", verifyToken, friendController.sendFriendRequ
 router.post("/accept/:senderId", verifyToken, friendController.acceptFriendRequest);
 router.post("/reject/:senderId", verifyToken, friendController.rejectFriendRequest);
 router.delete("/remove/:friendId", verifyToken, friendController.removeFriend);
+router.get("/", verifyToken, friendController.getFriends);
 
 module.exports = router;

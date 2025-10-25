@@ -3,7 +3,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { useSelector } from "react-redux";
 
-const Navbar = ({ closeProfile }) => {
+const Navbar = ({ closeProfile, searchInput, setSearchInput }) => {
   const { user } = useSelector((state) => state.user?.user);
 
   return (
@@ -36,7 +36,9 @@ const Navbar = ({ closeProfile }) => {
         </span>
         <input
           type="text"
+          value={searchInput}
           placeholder="Search Friend"
+          onChange={(e) => setSearchInput(e.target.value)}
           className="border bg-[#D3DAD9] focus:outline-none w-full h-[50px] rounded pl-10 pr-3 placeholder:text-gray-500"
         />
       </div>

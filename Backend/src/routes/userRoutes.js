@@ -9,5 +9,6 @@ router.post("/signin", userController.signin);
 router.get('/verify/:token', userController.verifyEmail);
 router.get("/signout", userController.signout);
 router.patch("/updateProfile", verifyToken, userController.editUser);
+router.get("/search", verifyToken, userController.searchUsers);
 
 module.exports = router; 
