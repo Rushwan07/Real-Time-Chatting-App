@@ -1,11 +1,19 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { Link } from "react-router-dom";
 import EmojiPicker from "emoji-picker-react";
 import SendIcon from "@mui/icons-material/Send";
 import MoodIcon from "@mui/icons-material/Mood";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
 const MessegeArea = ({ Id, setId }) => {
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+  const { user, token } = useSelector((state) => {
+    const user = state?.user?.user;
+    return user;
+  });
   const [SenderM, setSenderM] = useState([
     {
       messege: "Hello??",
@@ -19,6 +27,9 @@ const MessegeArea = ({ Id, setId }) => {
   ]);
   const [text, setText] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [friend, setFriend] = useState([]);
+  const [error, setError] = useState(null);
+
   const chatRef = useRef(null);
 
   const handleEmojiClick = (emojiData) => {
@@ -38,6 +49,25 @@ const MessegeArea = ({ Id, setId }) => {
     }
   };
 
+  useEffect(
+    () => {
+      const fetchFriends = async () => {
+        try {
+          const res = await axios.get(`${BASE_URL}/users/getuser/${Id}`, {
+            headers: { token },
+          });
+          setFriend(res.data?.data?.user || []);
+        } catch (err) {
+          setError(err.response?.data?.message || err.message);
+        } finally {
+        }
+      };
+
+      fetchFriends();
+    },
+    { Id }
+  );
+
   return (
     <div className="">
       {/* Header */}
@@ -55,11 +85,11 @@ const MessegeArea = ({ Id, setId }) => {
         <div className="w-[70px] h-[70px] rounded-[50px] overflow-hidden">
           <img
             className="w-full h-full object-cover"
-            src="https://images.pexels.com/photos/10412892/pexels-photo-10412892.jpeg"
+            src={friend?.image}
             alt="profile"
           />
         </div>
-        <h1 className="text-[1.4rem]">Jack</h1>
+        <h1 className="text-[1.4rem]">{friend?.username}</h1>
       </div>
 
       {/* Messages */}

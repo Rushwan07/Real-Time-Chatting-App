@@ -112,8 +112,11 @@ exports.removeFriend = async (req, res) => {
 exports.getFriends = async (req, res) => {
     try {
         const user = await User.findById(req.user.id)
-            .populate("friends")
-            .select("friends");
+            .populate({
+                path: "friends",
+                select: "-password -__v",
+            });
+
 
         if (!user) return res.status(404).json({ message: "User not found." });
 

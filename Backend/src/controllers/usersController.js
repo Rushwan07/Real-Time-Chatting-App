@@ -185,7 +185,7 @@ exports.searchUsers = async (req, res) => {
                 { username: { $regex: query, $options: "i" } },
                 { email: { $regex: query, $options: "i" } },
             ],
-        }).select("_id username email image friends"); // select only required fields
+        }).select("_id username email image friends friendRequests"); // select only required fields
 
         res.status(200).json({ message: "Users fetched successfully", users });
     } catch (error) {
@@ -195,3 +195,31 @@ exports.searchUsers = async (req, res) => {
 
 
 
+
+exports.getuser = async (req, res) => {
+
+    try {
+        const { id } = req.params;
+        console.log(id)
+
+        if (!id) {
+            return next(new AppError("Please provide user Id", 400));
+        }
+        const user = await User.findById(id);
+        console.log(user)
+
+        if (!user) {
+            return next(new AppError("User not found", 404));
+        }
+        res.status(200).json({
+            status: "success",
+            message: "User found successfully",
+            data: {
+                user,
+            },
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}

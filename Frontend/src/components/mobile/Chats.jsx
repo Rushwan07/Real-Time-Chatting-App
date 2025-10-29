@@ -16,17 +16,39 @@ const Chats = ({ friends }) => {
     );
   }
 
+  const HandleFriendRequests = async (Id) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/friends/request/${Id}`,
+        {},
+        {
+          headers: { token },
+        }
+      );
+
+      console.log(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div>
       {friends.map((friend, index) => {
         const isAlreadyFriend = user?.friends?.some((f) => f === friend._id);
+        const FriendRequest = friend?.friendRequests?.some(
+          (f) => f?._id === user?._id
+        );
 
         return (
           <div
             key={friend._id || index}
             className="chat w-full p-3 flex justify-between items-center cursor-pointer mt-2 hover:bg-gray-100 rounded-xl transition"
           >
-            <div className="flex gap-2 w-[80%] items-center">
+            <div
+              className="flex gap-2 w-[80%] items-center"
+              onClick={() => setId(friend._id)}
+            >
               <div className="w-[70px] h-[70px] rounded-[50px] overflow-hidden">
                 <img
                   className="w-full h-full object-cover"
@@ -50,14 +72,21 @@ const Chats = ({ friends }) => {
             <div className="flex flex-col justify-center items-center w-[20%] gap-1">
               {isAlreadyFriend ? (
                 <div className="text-center w-[20%] flex justify-center items-center flex-wrap">
-                  {/* <h4 className="text-[#08CB00] w-full">8:13pm</h4>
+                  <h4 className="text-[#08CB00] w-full">8:13pm</h4>
                   <h4 className="text-[#08CB00] font-bold rounded-[50px] w-full">
                     6
-                  </h4> */}
+                  </h4>
                 </div>
+              ) : !FriendRequest ? (
+                <button
+                  disabled
+                  className="bg-gray-400 text-[1.2rem] font-bold text-white px-4 py-1 rounded text-sm cursor-not-allowed"
+                >
+                  Requested
+                </button>
               ) : (
                 <button
-                  onClick={() => console.log("Send Friend Request", friend)}
+                  onClick={() => HandleFriendRequests(friend?._id)}
                   className="bg-[#08CB00] text-[1.2rem] font-bold text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
                 >
                   Add
