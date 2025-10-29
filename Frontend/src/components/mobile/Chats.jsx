@@ -25,8 +25,6 @@ const Chats = ({ friends }) => {
           headers: { token },
         }
       );
-
-      console.log(res.data);
     } catch (error) {
       console.error(error);
     }
