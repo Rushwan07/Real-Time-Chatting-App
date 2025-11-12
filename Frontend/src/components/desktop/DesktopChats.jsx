@@ -36,7 +36,6 @@ const DesktopChats = ({
           headers: { token },
         }
       );
-
     } catch (error) {
       console.error(error);
     }
@@ -57,7 +56,9 @@ const DesktopChats = ({
           >
             <div
               className="flex gap-2 w-[80%] items-center"
-              onClick={() => setId(friend._id)}
+              onClick={() => {
+                closeProfile(false), setId(friend._id);
+              }}
             >
               <div className="w-[70px] h-[70px] rounded-[50px] overflow-hidden">
                 <img

@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
+const Message = require("./src/models/messageModel"); // ✅ import Message model
+const User = require("./src/models/userModel"); // optional if you want to validate users
 dotenv.config();
 
 process.on("uncaughtException", (err) => {
@@ -31,10 +33,13 @@ const server = http.createServer(app);
 // -----------------------
 const io = new Server(server, {
   cors: {
-    origin: "*", // you can later restrict this to your frontend origin
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
+
+// 🧠 Optional: Keep a map of online users
+const onlineUsers = new Map();
 
 // -----------------------
 // ⚡ 4️⃣ Socket.io Logic
@@ -42,24 +47,46 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
-  // Listen for user registration (when frontend connects)
+  // Register connected user
   socket.on("registerUser", (userId) => {
-    console.log(`👤 User ${userId} connected with socket ${socket.id}`);
-    // Later: Save socketId in DB to send messages directly to this user
+    onlineUsers.set(userId, socket.id);
+    console.log(`👤 User ${userId} is online`);
   });
 
-  // Listen for chat messages
-  socket.on("sendMessage", (data) => {
-    console.log("📩 Message received:", data);
-    // Example data: { senderId, receiverId, message }
+  // Handle sending a message
+  socket.on("sendMessage", async (data) => {
+    try {
+      const { senderId, receiverId, message } = data;
+      console.log("📩 Message received:", data);
 
-    // Send message to receiver
-    io.to(data.receiverId).emit("receiveMessage", data);
+      // ✅ Save message in MongoDB
+      const newMessage = await Message.create({
+        sender: senderId,
+        receiver: receiverId,
+        message,
+      });
+
+      console.log("💾 Message saved:", newMessage);
+
+      // ✅ Emit to receiver if online
+      const receiverSocket = onlineUsers.get(receiverId);
+      if (receiverSocket) {
+        io.to(receiverSocket).emit("receiveMessage", newMessage);
+      }
+    } catch (err) {
+      console.error("❌ Error saving message:", err);
+    }
   });
 
-  // When user disconnects
+  // Handle disconnect
   socket.on("disconnect", () => {
     console.log("🔴 User disconnected:", socket.id);
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
   });
 });
 

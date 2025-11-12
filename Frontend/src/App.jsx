@@ -18,9 +18,11 @@ import Messege from "./pages/Messege";
 import useFriends from "./hooks/useFriends";
 
 function App() {
-  const { user } = useSelector((state) => state.user?.user);
+  const { user, token } = useSelector(
+    (state) => state?.user?.user || { user: null, token: null }
+  );
   console.log("USER>>>", user);
-  const  friendsHook  = useFriends();
+  const friendsHook = useFriends();
 
   const [Id, setId] = useState(null);
   const [profileStatus, closeProfile] = useState(false);
@@ -45,7 +47,7 @@ function App() {
                   <Mobile
                     profileStatus={profileStatus}
                     closeProfile={closeProfile}
-                    {...friendsHook} 
+                    {...friendsHook}
                   />
                 ) : (
                   <Navigate to="/login" replace />
@@ -76,7 +78,7 @@ function App() {
                     Id={Id}
                     profileStatus={profileStatus}
                     closeProfile={closeProfile}
-                    {...friendsHook} 
+                    {...friendsHook}
                   />
                 ) : (
                   <Navigate to="/login" replace />

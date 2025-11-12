@@ -200,13 +200,11 @@ exports.getuser = async (req, res) => {
 
     try {
         const { id } = req.params;
-        console.log(id)
 
         if (!id) {
             return next(new AppError("Please provide user Id", 400));
         }
         const user = await User.findById(id);
-        console.log(user)
 
         if (!user) {
             return next(new AppError("User not found", 404));

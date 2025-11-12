@@ -12,10 +12,10 @@ export default function useFriends() {
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState("");
 
-  const { user, token } = useSelector((state) => {
-    const user = state?.user?.user;
-    return user;
-  });
+  const { user, token } = useSelector(
+    (state) => state?.user?.user || { user: null, token: null }
+  );
+
   // Fetch user's friends
   useEffect(() => {
     if (!token) return;

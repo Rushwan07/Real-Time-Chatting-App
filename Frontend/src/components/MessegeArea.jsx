@@ -6,152 +6,192 @@ import SendIcon from "@mui/icons-material/Send";
 import MoodIcon from "@mui/icons-material/Mood";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import io from "socket.io-client";
+
+const socket = io(import.meta.env.VITE_BASE_URL2);
 
 const MessegeArea = ({ Id, setId }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  const { user, token } = useSelector((state) => {
-    const user = state?.user?.user;
-    return user;
-  });
-  const [SenderM, setSenderM] = useState([
-    {
-      messege: "Hello??",
-      messenger: "sender",
-    },
-    {
-      messege:
-        "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Asperiores eum perspiciatis commodi sint aliquid dicta magnam pariatur et ipsa voluptate ea, qui sit consectetur explicabo nam tempora esse reiciendis blanditiis?",
-      messenger: "receiver",
-    },
-  ]);
+  const { user, token } = useSelector(
+    (state) => state?.user?.user || { user: null, token: null }
+  );
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [friend, setFriend] = useState([]);
-  const [error, setError] = useState(null);
-
   const chatRef = useRef(null);
 
-  const handleEmojiClick = (emojiData) => {
-    setText((prev) => prev + emojiData.emoji);
-  };
+  // 🔹 Register user and listen for incoming messages
+  useEffect(() => {
+    if (user?._id) {
+      socket.emit("registerUser", user._id);
+    }
 
+    // When message is received in real-time
+    socket.on("receiveMessage", (msg) => {
+      if (msg.sender === Id) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    });
+
+    // Confirmation for sender
+    socket.on("messageSent", (msg) => {
+      if (msg.receiver === Id || msg.receiver?._id === Id) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    });
+
+    // Update seen messages
+    socket.on("messagesSeen", ({ receiverId }) => {
+      if (receiverId === Id) {
+        setMessages((prev) => prev.map((m) => ({ ...m, status: "seen" })));
+      }
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+      socket.off("messageSent");
+      socket.off("messagesSeen");
+    };
+  }, [user, Id]);
+
+  // 🔹 Scroll to bottom when new message
   useLayoutEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [SenderM]);
+  }, [messages]);
 
-  const handleSubmit = () => {
-    if (text.trim().length > 0) {
-      setSenderM((prev) => [...prev, { messege: text, messenger: "receiver" }]);
-      setText("");
-    }
+  // 🔹 Fetch messages + friend data
+  useEffect(() => {
+    const fetchData = async () => {
+      const [friendRes, msgRes] = await Promise.all([
+        axios.get(`${BASE_URL}/users/getuser/${Id}`, {
+          headers: { token },
+        }),
+        axios.get(`${BASE_URL}/messages/${user._id}/${Id}`, {
+          headers: { token },
+        }),
+      ]);
+
+      setFriend(friendRes.data?.data?.user);
+      setMessages(msgRes.data?.data?.messages || []);
+    };
+    if (Id) fetchData();
+  }, [Id]);
+
+  // 🔹 Send message
+  const handleSend = async () => {
+    if (!text.trim()) return;
+
+    const msg = {
+      senderId: user._id,
+      receiverId: Id,
+      message: text,
+    };
+
+    socket.emit("sendMessage", msg);
+    setText("");
   };
 
-  useEffect(
-    () => {
-      const fetchFriends = async () => {
-        try {
-          const res = await axios.get(`${BASE_URL}/users/getuser/${Id}`, {
-            headers: { token },
-          });
-          setFriend(res.data?.data?.user || []);
-        } catch (err) {
-          setError(err.response?.data?.message || err.message);
-        } finally {
-        }
-      };
+  // 🔹 Mark as seen
+  useEffect(() => {
+    if (Id) {
+      socket.emit("markAsSeen", { senderId: Id, receiverId: user._id });
+    }
+  }, [Id]);
 
-      fetchFriends();
-    },
-    { Id }
-  );
+  // 🔹 Handle emoji picker
+  const handleEmojiClick = (emojiData) =>
+    setText((prev) => prev + emojiData.emoji);
 
   return (
-    <div className="">
+    <div className="w-full h-screen flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b-2">
+      <div className="flex items-center gap-3 p-3 border-b-2 shadow-sm">
         <Link to={"/"}>
-          <div
-            className="cursor-pointer"
-            onClick={() => {
-              setId(null);
-            }}
-          >
+          <div className="cursor-pointer" onClick={() => setId(null)}>
             <ArrowBackIosIcon sx={{ color: "#08CB00" }} />
           </div>
         </Link>
-        <div className="w-[70px] h-[70px] rounded-[50px] overflow-hidden">
+        <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
           <img
             className="w-full h-full object-cover"
             src={friend?.image}
             alt="profile"
           />
         </div>
-        <h1 className="text-[1.4rem]">{friend?.username}</h1>
+        <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
       </div>
 
       {/* Messages */}
       <div
         ref={chatRef}
-        className="Messeges p-3 h-[75vh] overflow-y-auto flex flex-col gap-2"
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
       >
-        {SenderM.map((messege, index) => (
+        {messages.map((msg, i) => (
           <div
-            key={index}
+            key={i}
             className={`flex ${
-              messege.messenger === "sender" ? "justify-start" : "justify-end"
-            } mb-2`}
+              msg?.sender?._id === user._id || msg?.sender === user._id
+                ? "justify-end"
+                : "justify-start"
+            }`}
           >
-            <p
-              className={`p-3 rounded-2xl text-sm leading-relaxed max-w-[70%] break-words 
-             shadow-md transition-all duration-200
-             ${
-               messege.messenger === "sender"
-                 ? "bg-gray-100 text-gray-900" // sender bubble (light gray)
-                 : "bg-white text-gray-900 border border-gray-200" // receiver bubble (white)
-             }`}
-            >
-              {messege.messege}
-            </p>
+            <div>
+              <p
+                className={`p-3 rounded-2xl text-sm max-w-[70%] shadow-md ${
+                  msg?.sender === user._id || msg?.sender?._id === user._id
+                    ? "bg-green-100"
+                    : "bg-gray-100"
+                }`}
+              >
+                {msg.message}
+              </p>
+              {msg.sender === user._id && (
+                <p className="text-xs text-gray-500 text-right mt-1">
+                  {msg.status === "seen"
+                    ? "✅ Seen"
+                    : msg.status === "delivered"
+                    ? "📨 Delivered"
+                    : "🕓 Sent"}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
       {/* Footer */}
-      <div className="footer border-2 p-2 flex items-center fixed bottom-0 w-screen lg:w-[70%] bg-white">
-        <div className="border-2 rounded-full p-2 flex items-center w-full relative">
-          <button
-            type="button"
-            className="ml-2 text-2xl"
-            onClick={() => setShowPicker((prev) => !prev)}
-          >
-            <MoodIcon fontSize="large" />
-          </button>
+      <div className="border-t-2 p-3 flex items-center gap-2">
+        <button
+          type="button"
+          className="text-2xl"
+          onClick={() => setShowPicker((prev) => !prev)}
+        >
+          <MoodIcon fontSize="large" />
+        </button>
 
-          {showPicker && (
-            <div className="absolute bottom-12 left-0 z-50">
-              <EmojiPicker onEmojiClick={handleEmojiClick} />
-            </div>
-          )}
-
-          <textarea
-            className="focus:outline-none w-[90%] px-2 py-1 rounded-lg resize-none"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows="1"
-            placeholder="Type a message..."
-          ></textarea>
-
-          <div className="">
-            <SendIcon
-              className="cursor-pointer"
-              onClick={handleSubmit}
-              sx={{ color: "#08CB00" }}
-            />
+        {showPicker && (
+          <div className="absolute bottom-16 left-2 z-50">
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
           </div>
-        </div>
+        )}
+
+        <textarea
+          className="flex-1 border rounded-xl px-3 py-2 focus:outline-none resize-none"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows="1"
+          placeholder="Type a message..."
+        ></textarea>
+
+        <SendIcon
+          className="cursor-pointer"
+          onClick={handleSend}
+          sx={{ color: "#08CB00" }}
+        />
       </div>
     </div>
   );
