@@ -12,55 +12,66 @@ const socket = io(import.meta.env.VITE_BASE_URL2);
 
 const MessegeArea = ({ Id, setId }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
-
   const { user, token } = useSelector(
     (state) => state?.user?.user || { user: null, token: null }
   );
+
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [friend, setFriend] = useState([]);
+  const [isOnline, setIsOnline] = useState(false); // ✅ new state for online status
   const chatRef = useRef(null);
 
-  // 🔹 Register user and listen for incoming messages
+  // 🔹 Register user & listen for messages
   useEffect(() => {
     if (user?._id) {
       socket.emit("registerUser", user._id);
     }
 
-    // When message is received in real-time
+    // --- Listen for realtime events ---
     socket.on("receiveMessage", (msg) => {
-      if (msg.sender === Id) {
-        setMessages((prev) => [...prev, msg]);
-      }
+      if (msg.sender === Id) setMessages((prev) => [...prev, msg]);
     });
 
-    // Confirmation for sender
     socket.on("messageSent", (msg) => {
-      if (msg.receiver === Id || msg.receiver?._id === Id) {
+      if (msg.receiver === Id || msg.receiver?._id === Id)
         setMessages((prev) => [...prev, msg]);
-      }
     });
 
-    // Update seen messages
     socket.on("messagesSeen", ({ receiverId }) => {
-      if (receiverId === Id) {
+      if (receiverId === Id)
         setMessages((prev) => prev.map((m) => ({ ...m, status: "seen" })));
-      }
+    });
+
+    // ✅ Online / Offline listeners
+    socket.on("userOnline", ({ userId }) => {
+      if (userId === Id) setIsOnline(true);
+    });
+    socket.on("userOffline", ({ userId }) => {
+      if (userId === Id) setIsOnline(false);
+    });
+
+    // ✅ Check who’s online when entering chat
+    socket.emit("checkOnlineStatus", { userId: Id });
+    socket.on("onlineUsersList", (list) => {
+      if (list.includes(Id)) setIsOnline(true);
     });
 
     return () => {
       socket.off("receiveMessage");
       socket.off("messageSent");
       socket.off("messagesSeen");
+      socket.off("userOnline");
+      socket.off("userOffline");
+      socket.off("onlineUsersList");
     };
   }, [user, Id]);
 
   // 🔹 Scroll to bottom when new message
   useLayoutEffect(() => {
-    if (chatRef.current) {
+    if (chatRef.current)
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
   }, [messages]);
 
   // 🔹 Fetch messages + friend data
@@ -89,20 +100,20 @@ const MessegeArea = ({ Id, setId }) => {
       senderId: user._id,
       receiverId: Id,
       message: text,
+      status: "sent",
     };
 
+    setMessages((prev) => [...prev, { ...msg, sender: user._id }]);
     socket.emit("sendMessage", msg);
     setText("");
   };
 
   // 🔹 Mark as seen
   useEffect(() => {
-    if (Id) {
-      socket.emit("markAsSeen", { senderId: Id, receiverId: user._id });
-    }
+    if (Id) socket.emit("markAsSeen", { senderId: Id, receiverId: user._id });
   }, [Id]);
 
-  // 🔹 Handle emoji picker
+  // 🔹 Emoji handler
   const handleEmojiClick = (emojiData) =>
     setText((prev) => prev + emojiData.emoji);
 
@@ -122,7 +133,14 @@ const MessegeArea = ({ Id, setId }) => {
             alt="profile"
           />
         </div>
-        <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
+
+        {/* ✅ Username + Online status */}
+        <div>
+          <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
+          {isOnline && (
+            <p className="text-[0.8rem] text-green-500 font-medium">Online</p>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -130,37 +148,51 @@ const MessegeArea = ({ Id, setId }) => {
         ref={chatRef}
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
       >
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${
-              msg?.sender?._id === user._id || msg?.sender === user._id
-                ? "justify-end"
-                : "justify-start"
-            }`}
-          >
-            <div>
-              <p
-                className={`p-3 rounded-2xl text-sm max-w-[70%] shadow-md ${
-                  msg?.sender === user._id || msg?.sender?._id === user._id
-                    ? "bg-green-100"
-                    : "bg-gray-100"
+        {messages.map((msg, i) => {
+          const isSender =
+            msg?.sender?._id === user._id || msg?.sender === user._id;
+          const isSeen = msg.status === "seen";
+          const isSent = msg.status === "sent" || msg.status === "delivered";
+
+          return (
+            <div
+              key={i}
+              className={`flex w-full ${
+                isSender ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`flex flex-col max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${
+                  isSender ? "items-end" : "items-start"
                 }`}
               >
-                {msg.message}
-              </p>
-              {msg.sender === user._id && (
-                <p className="text-xs text-gray-500 text-right mt-1">
-                  {msg.status === "seen"
-                    ? "✅ Seen"
-                    : msg.status === "delivered"
-                    ? "📨 Delivered"
-                    : "🕓 Sent"}
+                <p
+                  className={`p-3 rounded-2xl text-sm shadow-md leading-relaxed whitespace-pre-wrap break-words 
+              ${
+                isSender
+                  ? isSeen
+                    ? "bg-white border border-blue-300 text-gray-800 rounded-br-none"
+                    : "bg-blue-100 text-gray-800 rounded-br-none"
+                  : "bg-gray-100 text-gray-800 rounded-bl-none"
+              }`}
+                  style={{
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                  }}
+                >
+                  {msg.message}
                 </p>
-              )}
+
+                {/* ✅ Only show Sent/Delivered (not Seen) */}
+                {isSender && isSent && (
+                  <p className="text-[0.7rem] text-gray-500 mt-1">
+                    {msg.status === "delivered" ? "📨 Delivered" : "🕓 Sent"}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Footer */}

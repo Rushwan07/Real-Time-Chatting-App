@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
-const Message = require("./src/models/messageModel"); // ✅ import Message model
-const User = require("./src/models/userModel"); // optional if you want to validate users
+const Message = require("./src/models/messageModel");
+const User = require("./src/models/userModel"); // optional
 dotenv.config();
 
 process.on("uncaughtException", (err) => {
@@ -38,7 +38,7 @@ const io = new Server(server, {
   },
 });
 
-// 🧠 Optional: Keep a map of online users
+// 🧠 Track online users
 const onlineUsers = new Map();
 
 // -----------------------
@@ -47,38 +47,95 @@ const onlineUsers = new Map();
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
-  // Register connected user
+  // ✅ Register user when they come online
   socket.on("registerUser", (userId) => {
     onlineUsers.set(userId, socket.id);
-    console.log(`👤 User ${userId} is online`);
+    io.emit("userOnline", { userId });
   });
 
-  // Handle sending a message
+  socket.on("disconnect", () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        io.emit("userOffline", { userId });
+        break;
+      }
+    }
+  });
+
+  socket.on("checkOnlineStatus", ({ userId }) => {
+    const list = Array.from(onlineUsers.keys());
+    socket.emit("onlineUsersList", list);
+  });
+
+
+  // ✅ Handle sending a message
   socket.on("sendMessage", async (data) => {
     try {
       const { senderId, receiverId, message } = data;
-      console.log("📩 Message received:", data);
+      console.log("📩 New message:", data);
 
-      // ✅ Save message in MongoDB
+      // Save message
       const newMessage = await Message.create({
         sender: senderId,
         receiver: receiverId,
         message,
+        status: "sent", // auto mark seen if receiver online
       });
 
-      console.log("💾 Message saved:", newMessage);
-
-      // ✅ Emit to receiver if online
+      // Emit to receiver
       const receiverSocket = onlineUsers.get(receiverId);
       if (receiverSocket) {
         io.to(receiverSocket).emit("receiveMessage", newMessage);
+
+        // Notify sender instantly that receiver has seen it
+        io.to(socket.id).emit("messagesSeen", { receiverId });
+      } else {
+        // Receiver offline → sender just gets confirmation
+        io.to(socket.id).emit("messageSent", newMessage);
       }
     } catch (err) {
       console.error("❌ Error saving message:", err);
     }
   });
 
-  // Handle disconnect
+  // ✅ Mark messages as seen
+  socket.on("markAsSeen", async ({ senderId, receiverId }) => {
+    try {
+      if (!senderId || !receiverId) return;
+
+      await Message.updateMany(
+        { sender: senderId, receiver: receiverId, status: { $ne: "seen" } },
+        { $set: { status: "seen" } }
+      );
+
+      const senderSocketId = onlineUsers.get(senderId);
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messagesSeen", { receiverId });
+      }
+
+      console.log(`👁️ Seen: ${senderId} → ${receiverId}`);
+    } catch (err) {
+      console.error("❌ Error marking messages as seen:", err);
+    }
+  });
+
+  // ✅ Typing Indicator Events
+  socket.on("startTyping", ({ senderId, receiverId }) => {
+    const receiverSocket = onlineUsers.get(receiverId);
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("userTyping", { senderId });
+    }
+  });
+
+  socket.on("stopTyping", ({ senderId, receiverId }) => {
+    const receiverSocket = onlineUsers.get(receiverId);
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("userStoppedTyping", { senderId });
+    }
+  });
+
+  // ✅ Handle user disconnect
   socket.on("disconnect", () => {
     console.log("🔴 User disconnected:", socket.id);
     for (const [userId, socketId] of onlineUsers.entries()) {
@@ -104,7 +161,5 @@ server.listen(port, () => {
 process.on("unhandledRejection", (err) => {
   console.log("UNHANDLED REJECTION! 💥 Shutting down...");
   console.log(err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
+  server.close(() => process.exit(1));
 });
