@@ -7,6 +7,8 @@ import MoodIcon from "@mui/icons-material/Mood";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import io from "socket.io-client";
+import CircleIcon from "@mui/icons-material/Circle";
+import { motion } from "motion/react";
 
 const socket = io(import.meta.env.VITE_BASE_URL2);
 
@@ -23,6 +25,14 @@ const MessegeArea = ({ Id, setId }) => {
   const [isOnline, setIsOnline] = useState(false); // ✅ new state for online status
   const chatRef = useRef(null);
 
+  // Typing states
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUserId, setTypingUserId] = useState(null);
+  const typingTimeoutRef = useRef(null);
+
+  const senderId = user?._id; // logged in user
+  const receiverId = Id;
+
   // 🔹 Register user & listen for messages
   useEffect(() => {
     if (user?._id) {
@@ -31,6 +41,7 @@ const MessegeArea = ({ Id, setId }) => {
 
     // --- Listen for realtime events ---
     socket.on("receiveMessage", (msg) => {
+      console.log("msg", msg);
       if (msg.sender === Id) setMessages((prev) => [...prev, msg]);
     });
 
@@ -92,6 +103,33 @@ const MessegeArea = ({ Id, setId }) => {
     if (Id) fetchData();
   }, [Id]);
 
+  const handleTyping = () => {
+    socket.emit("startTyping", { senderId, receiverId });
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", { senderId, receiverId });
+    }, 700);
+  };
+
+  // 🔹 Receive typing events
+  useEffect(() => {
+    socket.on("userTyping", ({ senderId: typingId }) => {
+      setTypingUserId(typingId);
+      setIsTyping(true);
+    });
+
+    socket.on("userStoppedTyping", ({ senderId: typingId }) => {
+      if (typingUserId === typingId) setIsTyping(false);
+    });
+
+    return () => {
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
+    };
+  }, [typingUserId]);
+
   // 🔹 Send message
   const handleSend = async () => {
     if (!text.trim()) return;
@@ -103,8 +141,13 @@ const MessegeArea = ({ Id, setId }) => {
       status: "sent",
     };
 
-    setMessages((prev) => [...prev, { ...msg, sender: user._id }]);
-    socket.emit("sendMessage", msg);
+    if (isOnline) {
+      setMessages((prev) => [...prev, { ...msg, sender: user._id }]);
+      socket.emit("sendMessage", msg);
+    } else {
+      socket.emit("sendMessage", msg);
+    }
+
     setText("");
   };
 
@@ -137,8 +180,53 @@ const MessegeArea = ({ Id, setId }) => {
         {/* ✅ Username + Online status */}
         <div>
           <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
-          {isOnline && (
-            <p className="text-[0.8rem] text-green-500 font-medium">Online</p>
+          {isTyping && typingUserId === Id ? (
+            <motion.div
+              className="flex items-center gap-1 ml-1 h-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Dot 1 */}
+              <motion.span
+                className="w-2 h-2 bg-gray-500 rounded-full"
+                animate={{ y: [0, -4, 0] }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0,
+                }}
+              />
+
+              {/* Dot 2 */}
+              <motion.span
+                className="w-2 h-2 bg-gray-500 rounded-full"
+                animate={{ y: [0, -4, 0] }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.15,
+                }}
+              />
+
+              {/* Dot 3 */}
+              <motion.span
+                className="w-2 h-2 bg-gray-500 rounded-full"
+                animate={{ y: [0, -4, 0] }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.3,
+                }}
+              />
+            </motion.div>
+          ) : (
+            isOnline && (
+              <p className="text-[0.8rem] text-green-500 font-medium">Online</p>
+            )
           )}
         </div>
       </div>
@@ -214,7 +302,10 @@ const MessegeArea = ({ Id, setId }) => {
         <textarea
           className="flex-1 border rounded-xl px-3 py-2 focus:outline-none resize-none"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            handleTyping();
+          }}
           rows="1"
           placeholder="Type a message..."
         ></textarea>

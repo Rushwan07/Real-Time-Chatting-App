@@ -73,31 +73,28 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async (data) => {
     try {
       const { senderId, receiverId, message } = data;
-      console.log("📩 New message:", data);
 
-      // Save message
+      const receiverOnline = onlineUsers.has(receiverId);
       const newMessage = await Message.create({
         sender: senderId,
         receiver: receiverId,
         message,
-        status: "sent", // auto mark seen if receiver online
+        status: receiverOnline ? "seen" : "sent",
       });
 
-      // Emit to receiver
       const receiverSocket = onlineUsers.get(receiverId);
+
       if (receiverSocket) {
         io.to(receiverSocket).emit("receiveMessage", newMessage);
-
-        // Notify sender instantly that receiver has seen it
         io.to(socket.id).emit("messagesSeen", { receiverId });
       } else {
-        // Receiver offline → sender just gets confirmation
         io.to(socket.id).emit("messageSent", newMessage);
       }
     } catch (err) {
       console.error("❌ Error saving message:", err);
     }
   });
+
 
   // ✅ Mark messages as seen
   socket.on("markAsSeen", async ({ senderId, receiverId }) => {
