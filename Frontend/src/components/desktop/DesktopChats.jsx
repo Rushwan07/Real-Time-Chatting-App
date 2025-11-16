@@ -44,9 +44,9 @@ const DesktopChats = ({
   return (
     <div>
       {friends.map((friend, index) => {
-        const isAlreadyFriend = user?.friends?.some((f) => f === friend._id);
-        const FriendRequest = friend?.friendRequests?.some(
-          (f) => f?._id === user?._id
+        const isAlreadyFriend = user?.friends?.some((f) => f === friend?._id);
+        const FriendRequest = !friend?.friendRequests?.some(
+          (f) => f?.from === user?._id
         );
 
         return (
@@ -56,9 +56,14 @@ const DesktopChats = ({
           >
             <div
               className="flex gap-2 w-[80%] items-center"
-              onClick={() => {
-                closeProfile(false), setId(friend._id);
-              }}
+              onClick={
+                isAlreadyFriend
+                  ? () => {
+                      closeProfile(false);
+                      setId(friend._id);
+                    }
+                  : undefined
+              }
             >
               <div className="w-[70px] h-[70px] rounded-[50px] overflow-hidden">
                 <img

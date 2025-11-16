@@ -250,7 +250,7 @@ const MessegeArea = ({ Id, setId }) => {
               }`}
             >
               <div
-                className={`flex flex-col max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${
+                className={`flex flex-col cursor-pointer max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${
                   isSender ? "items-end" : "items-start"
                 }`}
               >

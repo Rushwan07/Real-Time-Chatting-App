@@ -6,6 +6,7 @@ exports.sendFriendRequest = async (req, res) => {
         const senderId = req.user.id;
         const { receiverId } = req.params;
 
+
         if (senderId === receiverId)
             return res.status(400).json({ message: "You cannot send a request to yourself." });
 
@@ -22,11 +23,13 @@ exports.sendFriendRequest = async (req, res) => {
         const alreadySent = receiver.friendRequests.find(
             (req) => req.from.toString() === senderId && req.status === "pending"
         );
+
         if (alreadySent)
             return res.status(400).json({ message: "Friend request already sent." });
 
         receiver.friendRequests.push({ from: senderId, status: "pending" });
         await receiver.save();
+
 
         res.status(200).json({ message: "Friend request sent successfully." });
     } catch (error) {
