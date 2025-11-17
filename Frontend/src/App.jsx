@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import { useSelector } from "react-redux";
 import Messege from "./pages/Messege";
 import useFriends from "./hooks/useFriends";
+import FavoriteModal from "./components/FavoriteModal";
 
 function App() {
   const { user, token } = useSelector(
@@ -26,6 +27,8 @@ function App() {
 
   const [Id, setId] = useState(null);
   const [profileStatus, closeProfile] = useState(false);
+  const [openFavModal, setOpenFavModal] = useState(false);
+
   function MessegeAreaWrapper() {
     const { id } = useParams();
     return <MessegeArea Id={id} setId={setId} />;
@@ -44,11 +47,18 @@ function App() {
               path="/"
               element={
                 user?.email ? (
-                  <Mobile
-                    profileStatus={profileStatus}
-                    closeProfile={closeProfile}
-                    {...friendsHook}
-                  />
+                  <>
+                    <Mobile
+                      profileStatus={profileStatus}
+                      closeProfile={closeProfile}
+                      {...friendsHook}
+                      setOpenFavModal={setOpenFavModal}
+                    />
+
+                    {openFavModal && (
+                      <FavoriteModal onClose={() => setOpenFavModal(false)} />
+                    )}
+                  </>
                 ) : (
                   <Navigate to="/login" replace />
                 )
@@ -73,13 +83,19 @@ function App() {
               path="/"
               element={
                 user?.email ? (
-                  <Desktop
-                    setId={setId}
-                    Id={Id}
-                    profileStatus={profileStatus}
-                    closeProfile={closeProfile}
-                    {...friendsHook}
-                  />
+                  <>
+                    <Desktop
+                      setId={setId}
+                      Id={Id}
+                      profileStatus={profileStatus}
+                      closeProfile={closeProfile}
+                      {...friendsHook}
+                      setOpenFavModal={setOpenFavModal}
+                    />
+                    {openFavModal && (
+                      <FavoriteModal onClose={() => setOpenFavModal(false)} />
+                    )}
+                  </>
                 ) : (
                   <Navigate to="/login" replace />
                 )

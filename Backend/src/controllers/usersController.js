@@ -194,8 +194,6 @@ exports.searchUsers = async (req, res) => {
 };
 
 
-
-
 exports.getuser = async (req, res) => {
 
     try {

@@ -13,6 +13,7 @@ const Desktop = ({
   setSearchInput,
   searchInput,
   loading,
+  setOpenFavModal,
 }) => {
   console.log("idState", Id);
   return (
@@ -20,10 +21,15 @@ const Desktop = ({
       <div className="w-[30%] h-[100vh] overflow-hidden border-r-2">
         <div className="bg-white fixed top-0 left-0 w-[30%]  z-50 border-r-2">
           {" "}
-          <Navbar closeProfile={closeProfile} setSearchInput={setSearchInput} searchInput={searchInput} />
+          <Navbar
+            closeProfile={closeProfile}
+            setSearchInput={setSearchInput}
+            searchInput={searchInput}
+            setOpenFavModal={setOpenFavModal}
+          />
         </div>
 
-        <div className="mt-[125px] ">
+        <div className="mt-[135px] ">
           <DesktopChats
             setId={setId}
             profileStatus={profileStatus}

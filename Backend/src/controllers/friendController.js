@@ -136,8 +136,9 @@ exports.getFriends = async (req, res) => {
 exports.getFriendRequests = async (req, res) => {
     try {
         const user = await User.findById(req.user.id)
-            .populate("friendRequests.from", "name email image")
+            .populate("friendRequests.from", "username email image")
             .select("friendRequests");
+        user.friendRequests = user.friendRequests.reverse();
 
         if (!user) return res.status(404).json({ message: "User not found." });
 
@@ -145,7 +146,7 @@ exports.getFriendRequests = async (req, res) => {
 
         res.status(200).json({
             message: "Pending requests fetched successfully.",
-            requests: pending,
+            requests: user,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -8,6 +8,7 @@ const Mobile = ({
   friends,
   setSearchInput,
   searchInput,
+  setOpenFavModal,
 }) => {
   return (
     <div>
@@ -17,17 +18,18 @@ const Mobile = ({
             closeProfile={closeProfile}
             setSearchInput={setSearchInput}
             searchInput={searchInput}
+            setOpenFavModal={setOpenFavModal}
           />
         </div>
 
-        <div className="mt-[125px]">
+        <div className="mt-[135px]">
           {profileStatus ? (
             <Profile
               closeProfile={closeProfile}
               profileStatus={profileStatus}
             />
           ) : (
-            <Chats friends={friends}/>
+            <Chats friends={friends} />
           )}
         </div>
       </div>

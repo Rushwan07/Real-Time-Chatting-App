@@ -3,18 +3,27 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { useSelector } from "react-redux";
 
-const Navbar = ({ closeProfile, searchInput, setSearchInput }) => {
+const Navbar = ({
+  closeProfile,
+  searchInput,
+  setSearchInput,
+  setOpenFavModal,
+}) => {
   const { user } = useSelector((state) => state.user?.user);
 
   return (
-    <div className="p-3">
+    <div className="p-3 border-b-2">
       <div className="nav flex justify-between items-center p-1">
         <div className="">
           <h4 className="text-[2rem] font-bold text-[#08CB00]">ChitChat</h4>
         </div>
         <div className="flex items-center gap-3 p-2 bg-white transition-shadow duration-300">
           <div className="cursor-pointer relative w-fit">
-            <FavoriteBorderIcon fontSize="large" sx={{ color: "#334443" }} />
+            <FavoriteBorderIcon
+              fontSize="large"
+              sx={{ color: "#334443" }}
+              onClick={() => setOpenFavModal(true)}
+            />
             <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-[#DD0303] border-2 border-white"></span>
           </div>
 
