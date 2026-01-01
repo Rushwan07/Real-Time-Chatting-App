@@ -194,28 +194,38 @@ exports.searchUsers = async (req, res) => {
 };
 
 
-exports.getuser = async (req, res) => {
-
+exports.getuser = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const targetUserId = req.params.id;
+        const requesterId = req.user.id;
 
-        if (!id) {
+        if (!targetUserId) {
             return next(new AppError("Please provide user Id", 400));
         }
-        const user = await User.findById(id);
 
-        if (!user) {
+        const userfound = await User.findById(targetUserId);
+        if (!userfound) {
             return next(new AppError("User not found", 404));
         }
+
+        const requser = await User.findById(requesterId).select("friends");
+
+        const isFriend = requser.friends.some(
+            (friendId) => friendId.toString() === targetUserId
+        );
+
+        if (!isFriend) {
+            return next(new AppError("You are not friends with this user", 403));
+        }
+
         res.status(200).json({
             status: "success",
             message: "User found successfully",
             data: {
-                user,
+                user: userfound,
             },
         });
-
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return next(error);
     }
-}
+};

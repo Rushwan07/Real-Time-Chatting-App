@@ -33,7 +33,7 @@ const Chats = ({ friends }) => {
 
   return (
     <div>
-      {friends.map((friend, index) => {
+      {friends?.map((friend, index) => {
         const isAlreadyFriend = user?.friends?.some((f) => f === friend?._id);
         const FriendRequest = !friend?.friendRequests?.some(
           (f) => f?.from === user?._id

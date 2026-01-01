@@ -10,12 +10,13 @@ const Desktop = ({
   profileStatus,
   closeProfile,
   friends,
+  setFriends,
   setSearchInput,
   searchInput,
   loading,
   setOpenFavModal,
 }) => {
-  console.log("idState", Id);
+  console.log("idState", setFriends);
   return (
     <div className="flex gap-2 ">
       <div className="w-[30%] h-[100vh] overflow-hidden border-r-2">
@@ -42,7 +43,7 @@ const Desktop = ({
         {profileStatus ? (
           <Profile profileStatus={profileStatus} closeProfile={closeProfile} />
         ) : Id !== null && Id !== undefined ? (
-          <MessegeArea Id={Id} setId={setId} />
+          <MessegeArea Id={Id} setId={setId} setFriends={setFriends} />
         ) : (
           <h1 className="h-[100vh] flex items-center justify-center text-[2rem] font-bold text-[#08CB00]">
             Let's Chat

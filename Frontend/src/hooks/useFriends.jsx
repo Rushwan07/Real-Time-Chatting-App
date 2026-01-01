@@ -104,5 +104,5 @@ export default function useFriends() {
     return () => clearTimeout(delay);
   }, [searchInput, token, allFriends]);
 
-  return { friends, loading, error, searchInput, setSearchInput };
+  return { friends, loading, error, searchInput, setSearchInput, setFriends };
 }

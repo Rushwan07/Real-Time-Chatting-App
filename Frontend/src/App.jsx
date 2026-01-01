@@ -33,6 +33,8 @@ function App() {
     const { id } = useParams();
     return <MessegeArea Id={id} setId={setId} />;
   }
+
+  console.log("friendsHook", friendsHook);
   return (
     <div className="">
       <Router>
@@ -56,7 +58,10 @@ function App() {
                     />
 
                     {openFavModal && (
-                      <FavoriteModal onClose={() => setOpenFavModal(false)} />
+                      <FavoriteModal
+                        {...friendsHook}
+                        onClose={() => setOpenFavModal(false)}
+                      />
                     )}
                   </>
                 ) : (
@@ -93,7 +98,10 @@ function App() {
                       setOpenFavModal={setOpenFavModal}
                     />
                     {openFavModal && (
-                      <FavoriteModal onClose={() => setOpenFavModal(false)} />
+                      <FavoriteModal
+                        {...friendsHook}
+                        onClose={() => setOpenFavModal(false)}
+                      />
                     )}
                   </>
                 ) : (

@@ -42,24 +42,36 @@ exports.acceptFriendRequest = async (req, res) => {
     try {
         const receiverId = req.user.id;
         const { senderId } = req.params;
-
         const receiver = await User.findById(receiverId);
         const sender = await User.findById(senderId);
-
         const request = receiver.friendRequests.find(
             (req) => req.from.toString() === senderId && req.status === "pending"
         );
+        console.log("2")
+
         if (!request) return res.status(400).json({ message: "No pending request found." });
+        console.log("3")
 
         request.status = "accepted";
         receiver.friends.push(senderId);
         sender.friends.push(receiverId);
+        console.log("4")
+
 
         await receiver.save();
         await sender.save();
 
-        res.status(200).json({ message: "Friend request accepted." });
+
+
+        res.status(200).json({
+            message: "Friend request accepted.",
+            data: {
+                sender,
+                receiver
+            },
+        });
     } catch (error) {
+        console.log("error message", error.message)
         res.status(500).json({ message: error.message });
     }
 };
@@ -125,7 +137,7 @@ exports.getFriends = async (req, res) => {
 
         res.status(200).json({
             message: "Friends list fetched successfully.",
-            friends: user.friends,
+            friends: user.friends
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

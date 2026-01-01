@@ -27,6 +27,7 @@ const DesktopChats = ({
     );
   }
 
+  console.log("FRIENDS", friends);
   const HandleFriendRequests = async (Id) => {
     try {
       const res = await axios.post(
@@ -45,8 +46,8 @@ const DesktopChats = ({
     <div>
       {friends.map((friend, index) => {
         const isAlreadyFriend = user?.friends?.some((f) => f === friend?._id);
-        const FriendRequest = !friend?.friendRequests?.some(
-          (f) => f?.from === user?._id
+        const FriendRequest = friend?.friendRequests?.some(
+          (f) => f?.from === user?._id && f?.status === "pending"
         );
 
         return (
@@ -93,7 +94,7 @@ const DesktopChats = ({
                     6
                   </h4>
                 </div>
-              ) : !FriendRequest ? (
+              ) : FriendRequest ? (
                 <button
                   disabled
                   className="bg-gray-400 text-[1.2rem] font-bold text-white px-4 py-1 rounded text-sm cursor-not-allowed"

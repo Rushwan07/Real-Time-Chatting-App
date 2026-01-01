@@ -1,8 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../features/Auth/userSlice";
 
-const FavoriteModal = ({ onClose }) => {
+const FavoriteModal = ({ onClose, setFriends }) => {
+  const dispatch = useDispatch();
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const { user, token } = useSelector(
@@ -16,6 +18,25 @@ const FavoriteModal = ({ onClose }) => {
         const res = await axios.get(`${BASE_URL}/friends/getRequests`, {
           headers: { token },
         });
+        const res2 = await axios.get(`${BASE_URL}/friends/`, {
+          headers: { token },
+        });
+
+        console.log("FIRENDS ", res2.data.friends);
+        dispatch(
+          setUser({
+            user: {
+              ...user,
+              friends: Array.isArray(res2?.data?.friends)
+                ? res2.data.friends.map((f) => f._id ?? f)
+                : user.friends,
+            },
+            token: token,
+          })
+        );
+
+        console.log("res2?.data?.friends", res2?.data?.friends);
+        setFriends(res2?.data?.friends);
 
         setNotifications(res?.data?.requests?.friendRequests);
         console.log(res.data);
@@ -25,6 +46,32 @@ const FavoriteModal = ({ onClose }) => {
     fetRequests();
   }, [token]);
   console.log(notifications);
+
+  const HandleAccept = async (Id) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/friends/accept/${Id}`,
+        {}, // empty body
+        {
+          headers: { token },
+        }
+      );
+
+      dispatch(
+        setUser({
+          user: res.data.data.receiver,
+          token: token,
+        })
+      );
+
+      console.log("DODODOODODOOD", res?.data);
+      setFriends((prev) => [...prev, res.data?.data?.sender]);
+      console.log("TTTTTTTTTTTTTT", res.data?.data?.sender);
+    } catch (err) {
+      console.log(err.response?.data || err.message);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 px-3 sm:px-4">
       <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-[480px] sm:max-w-[600px] shadow-2xl border border-gray-200">
@@ -86,11 +133,17 @@ const FavoriteModal = ({ onClose }) => {
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-green-500 text-white text-xs sm:text-sm font-medium hover:bg-green-600 transition">
+                    <button
+                      onClick={() => HandleAccept(noti?.from?._id)}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-green-500 text-white text-xs sm:text-sm font-medium hover:bg-green-600 transition"
+                    >
                       Confirm
                     </button>
 
-                    <button className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-red-500 text-white text-xs sm:text-sm font-medium hover:bg-red-600 transition">
+                    <button
+                      // onClick={HandleReject}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-red-500 text-white text-xs sm:text-sm font-medium hover:bg-red-600 transition"
+                    >
                       Reject
                     </button>
                   </div>

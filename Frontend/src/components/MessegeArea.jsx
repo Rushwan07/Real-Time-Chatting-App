@@ -1,18 +1,19 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import EmojiPicker from "emoji-picker-react";
 import SendIcon from "@mui/icons-material/Send";
 import MoodIcon from "@mui/icons-material/Mood";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
-import CircleIcon from "@mui/icons-material/Circle";
 import { motion } from "motion/react";
+import { setUser } from "../features/Auth/userSlice";
+import { toast } from "react-toastify";
 
 const socket = io(import.meta.env.VITE_BASE_URL2);
 
-const MessegeArea = ({ Id, setId }) => {
+const MessegeArea = ({ Id, setId, setFriends }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const { user, token } = useSelector(
     (state) => state?.user?.user || { user: null, token: null }
@@ -24,7 +25,8 @@ const MessegeArea = ({ Id, setId }) => {
   const [friend, setFriend] = useState([]);
   const [isOnline, setIsOnline] = useState(false); // ✅ new state for online status
   const chatRef = useRef(null);
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   // Typing states
   const [isTyping, setIsTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState(null);
@@ -33,6 +35,7 @@ const MessegeArea = ({ Id, setId }) => {
   const senderId = user?._id; // logged in user
   const receiverId = Id;
 
+  console.log("token", token);
   // 🔹 Register user & listen for messages
   useEffect(() => {
     if (user?._id) {
@@ -88,18 +91,39 @@ const MessegeArea = ({ Id, setId }) => {
   // 🔹 Fetch messages + friend data
   useEffect(() => {
     const fetchData = async () => {
-      const [friendRes, msgRes] = await Promise.all([
-        axios.get(`${BASE_URL}/users/getuser/${Id}`, {
-          headers: { token },
-        }),
-        axios.get(`${BASE_URL}/messages/${user._id}/${Id}`, {
-          headers: { token },
-        }),
-      ]);
+      try {
+        const [friendRes, msgRes] = await Promise.all([
+          axios.get(`${BASE_URL}/users/getuser/${Id}`, {
+            headers: { token },
+          }),
+          axios.get(`${BASE_URL}/messages/${user._id}/${Id}`, {
+            headers: { token },
+          }),
+        ]);
 
-      setFriend(friendRes.data?.data?.user);
-      setMessages(msgRes.data?.data?.messages || []);
+        setFriend(friendRes.data?.data?.user);
+        setMessages(msgRes.data?.data?.messages || []);
+      } catch (error) {
+        const status = error?.response?.status;
+
+        if (status === 403) {
+          // 🔒 No longer friends
+          toast.success("You are no longer friends with this user", {
+            position: "top-right",
+            autoClose: 10000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+        } else {
+          console.error(error);
+        }
+      }
     };
+
     if (Id) fetchData();
   }, [Id]);
 
@@ -160,75 +184,108 @@ const MessegeArea = ({ Id, setId }) => {
   const handleEmojiClick = (emojiData) =>
     setText((prev) => prev + emojiData.emoji);
 
+  const HandleRemove = async () => {
+    try {
+      const res = await axios.delete(`${BASE_URL}/friends/remove/${Id}`, {
+        headers: { token },
+      });
+      console.log(res?.data);
+      dispatch(
+        setUser({
+          user: {
+            ...user,
+            friends: user.friends.map((f) => f._id !== Id),
+          },
+          token: token,
+        })
+      );
+      setId(null);
+      setFriends((prev) => prev.filter((f) => f._id !== friend._id));
+    } catch (err) {
+      console.log(err?.response?.data || err?.message);
+    }
+  };
+
   return (
     <div className="w-full h-screen flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b-2 shadow-sm">
-        <Link to={"/"}>
-          <div className="cursor-pointer" onClick={() => setId(null)}>
-            <ArrowBackIosIcon sx={{ color: "#08CB00" }} />
+      <div className="flex justify-between items-center gap-3 p-3 border-b-2 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Link to={"/"}>
+            <div className="cursor-pointer" onClick={() => setId(null)}>
+              <ArrowBackIosIcon sx={{ color: "#08CB00" }} />
+            </div>
+          </Link>
+          <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
+            <img
+              className="w-full h-full object-cover"
+              src={friend?.image}
+              alt="profile"
+            />
           </div>
-        </Link>
-        <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
-          <img
-            className="w-full h-full object-cover"
-            src={friend?.image}
-            alt="profile"
-          />
+
+          {/* ✅ Username + Online status */}
+          <div>
+            <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
+            {isTyping && typingUserId === Id ? (
+              <motion.div
+                className="flex items-center gap-1 ml-1 h-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Dot 1 */}
+                <motion.span
+                  className="w-2 h-2 bg-gray-500 rounded-full"
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0,
+                  }}
+                />
+
+                {/* Dot 2 */}
+                <motion.span
+                  className="w-2 h-2 bg-gray-500 rounded-full"
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.15,
+                  }}
+                />
+
+                {/* Dot 3 */}
+                <motion.span
+                  className="w-2 h-2 bg-gray-500 rounded-full"
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.3,
+                  }}
+                />
+              </motion.div>
+            ) : (
+              isOnline && (
+                <p className="text-[0.8rem] text-green-500 font-medium">
+                  Online
+                </p>
+              )
+            )}
+          </div>
         </div>
-
-        {/* ✅ Username + Online status */}
-        <div>
-          <h1 className="text-[1.2rem] font-semibold">{friend?.username}</h1>
-          {isTyping && typingUserId === Id ? (
-            <motion.div
-              className="flex items-center gap-1 ml-1 h-5"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Dot 1 */}
-              <motion.span
-                className="w-2 h-2 bg-gray-500 rounded-full"
-                animate={{ y: [0, -4, 0] }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0,
-                }}
-              />
-
-              {/* Dot 2 */}
-              <motion.span
-                className="w-2 h-2 bg-gray-500 rounded-full"
-                animate={{ y: [0, -4, 0] }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.15,
-                }}
-              />
-
-              {/* Dot 3 */}
-              <motion.span
-                className="w-2 h-2 bg-gray-500 rounded-full"
-                animate={{ y: [0, -4, 0] }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.3,
-                }}
-              />
-            </motion.div>
-          ) : (
-            isOnline && (
-              <p className="text-[0.8rem] text-green-500 font-medium">Online</p>
-            )
-          )}
-        </div>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          className="bg-[#FF0000] text-white p-1 py-1 font-bold rounded"
+          onClick={() => HandleRemove()}
+        >
+          Remove
+        </motion.button>
       </div>
 
       {/* Messages */}
