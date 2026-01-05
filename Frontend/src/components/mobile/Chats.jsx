@@ -2,8 +2,11 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Cat } from "lucide-react"; // lightweight cat icon from lucide-react
 import { useSelector } from "react-redux";
+import axios from "axios";
 
 const Chats = ({ friends }) => {
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
   const { user, token } = useSelector((state) => state?.user?.user || {});
   const navigate = useNavigate();
 
@@ -33,10 +36,10 @@ const Chats = ({ friends }) => {
 
   return (
     <div>
-      {friends?.map((friend, index) => {
+      {friends.map((friend, index) => {
         const isAlreadyFriend = user?.friends?.some((f) => f === friend?._id);
-        const FriendRequest = !friend?.friendRequests?.some(
-          (f) => f?.from === user?._id
+        const FriendRequest = friend?.friendRequests?.some(
+          (f) => f?.from === user?._id && f?.status === "pending"
         );
 
         return (
@@ -81,7 +84,7 @@ const Chats = ({ friends }) => {
                     6
                   </h4>
                 </div>
-              ) : !FriendRequest ? (
+              ) : FriendRequest ? (
                 <button
                   disabled
                   className="bg-gray-400 text-[1.2rem] font-bold text-white px-4 py-1 rounded text-sm cursor-not-allowed"

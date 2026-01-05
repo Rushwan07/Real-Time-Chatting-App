@@ -104,23 +104,7 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
         setFriend(friendRes.data?.data?.user);
         setMessages(msgRes.data?.data?.messages || []);
       } catch (error) {
-        const status = error?.response?.status;
-
-        if (status === 403) {
-          // 🔒 No longer friends
-          toast.success("You are no longer friends with this user", {
-            position: "top-right",
-            autoClose: 10000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-          });
-        } else {
-          console.error(error);
-        }
+        console.error(error);
       }
     };
 
@@ -206,6 +190,27 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
     }
   };
 
+  if (friend.length == 0) {
+    return (
+      <div>
+        <div className="flex justify-between items-center gap-3 p-3 border-b-2 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Link to={"/"}>
+              <div className="cursor-pointer" onClick={() => setId(null)}>
+                <ArrowBackIosIcon sx={{ color: "#08CB00" }} />
+              </div>
+            </Link>
+          </div>
+        </div>
+        <div className="">
+          <h1 className="h-[100vh] flex items-center justify-center text-[2rem] font-bold text-[#08CB00]">
+            No longer firends!!
+          </h1>{" "}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-screen flex flex-col bg-white">
       {/* Header */}
@@ -279,16 +284,17 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
             )}
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          className="bg-[#FF0000] text-white p-1 py-1 font-bold rounded"
-          onClick={() => HandleRemove()}
-        >
-          Remove
-        </motion.button>
+        <Link to={"/"}>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            className="bg-[#FF0000] text-white p-1 py-1 font-bold rounded"
+            onClick={() => HandleRemove()}
+          >
+            Remove
+          </motion.button>
+        </Link>
       </div>
 
-      {/* Messages */}
       <div
         ref={chatRef}
         className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
