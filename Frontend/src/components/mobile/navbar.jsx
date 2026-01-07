@@ -1,15 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { useSelector } from "react-redux";
+import { motion } from "motion/react";
+import axios from "axios";
 
 const Navbar = ({
   closeProfile,
   searchInput,
   setSearchInput,
   setOpenFavModal,
+  setNotify,
+  Notify,
 }) => {
-  const { user } = useSelector((state) => state.user?.user);
+  const { user, token } = useSelector((state) => state?.user?.user || {});
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+  // const [Notify, setNotify] = useState(false);
+
+  useEffect(() => {
+    const fetchNotification = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/friends/getNotifications`, {
+          headers: { token },
+        });
+
+        setNotify(res?.data?.notify);
+      } catch (error) {
+        console.error("Failed to fetch notifications", error);
+      }
+    };
+
+    fetchNotification();
+  }, [token]);
+
+  console.log("NAVBAR", Notify);
 
   return (
     <div className="p-3 border-b-2">
@@ -24,7 +48,17 @@ const Navbar = ({
               sx={{ color: "#334443" }}
               onClick={() => setOpenFavModal(true)}
             />
-            <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-[#DD0303] border-2 border-white"></span>
+            {Notify && (
+              <motion.span
+                animate={{ y: [0, -4, 0] }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  repeatDelay: 4,
+                }}
+                className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-[#DD0303] border-2 border-white"
+              ></motion.span>
+            )}
           </div>
 
           <div

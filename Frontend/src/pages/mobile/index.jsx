@@ -9,6 +9,8 @@ const Mobile = ({
   setSearchInput,
   searchInput,
   setOpenFavModal,
+  setNotify,
+  Notify,
 }) => {
   return (
     <div>
@@ -19,6 +21,8 @@ const Mobile = ({
             setSearchInput={setSearchInput}
             searchInput={searchInput}
             setOpenFavModal={setOpenFavModal}
+            setNotify={setNotify}
+            Notify={Notify}
           />
         </div>
 

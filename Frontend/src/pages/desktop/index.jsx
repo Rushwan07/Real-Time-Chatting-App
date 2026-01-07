@@ -15,6 +15,8 @@ const Desktop = ({
   searchInput,
   loading,
   setOpenFavModal,
+  setNotify,
+  Notify,
 }) => {
   console.log("idState", setFriends);
   return (
@@ -23,6 +25,8 @@ const Desktop = ({
         <div className="bg-white fixed top-0 left-0 w-[30%]  z-50 border-r-2">
           {" "}
           <Navbar
+            setNotify={setNotify}
+            Notify={Notify}
             closeProfile={closeProfile}
             setSearchInput={setSearchInput}
             searchInput={searchInput}

@@ -10,5 +10,6 @@ router.post("/reject/:senderId", verifyToken, friendController.rejectFriendReque
 router.delete("/remove/:friendId", verifyToken, friendController.removeFriend);
 router.get("/", verifyToken, friendController.getFriends);
 router.get("/getRequests", verifyToken, friendController.getFriendRequests);
+router.get("/getNotifications", verifyToken, friendController.getNotifications);
 
 module.exports = router;

@@ -28,6 +28,7 @@ function App() {
   const [Id, setId] = useState(null);
   const [profileStatus, closeProfile] = useState(false);
   const [openFavModal, setOpenFavModal] = useState(false);
+  const [Notify, setNotify] = useState(false);
 
   function MessegeAreaWrapper() {
     const { id } = useParams();
@@ -52,6 +53,8 @@ function App() {
                   <>
                     <Mobile
                       profileStatus={profileStatus}
+                      setNotify={setNotify}
+                      Notify={Notify}
                       closeProfile={closeProfile}
                       {...friendsHook}
                       setOpenFavModal={setOpenFavModal}
@@ -60,7 +63,9 @@ function App() {
                     {openFavModal && (
                       <FavoriteModal
                         {...friendsHook}
-                        onClose={() => setOpenFavModal(false)}
+                        onClose={() => {
+                          setOpenFavModal(false), setNotify(false);
+                        }}
                       />
                     )}
                   </>
@@ -92,6 +97,8 @@ function App() {
                     <Desktop
                       setId={setId}
                       Id={Id}
+                      setNotify={setNotify}
+                      Notify={Notify}
                       profileStatus={profileStatus}
                       closeProfile={closeProfile}
                       {...friendsHook}
@@ -100,7 +107,9 @@ function App() {
                     {openFavModal && (
                       <FavoriteModal
                         {...friendsHook}
-                        onClose={() => setOpenFavModal(false)}
+                        onClose={() => {
+                          setOpenFavModal(false), setNotify(false);
+                        }}
                       />
                     )}
                   </>

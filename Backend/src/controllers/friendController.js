@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const Notification = require("../models/notificationModel")
 
 // ✅ Send Friend Request
 exports.sendFriendRequest = async (req, res) => {
@@ -30,6 +31,12 @@ exports.sendFriendRequest = async (req, res) => {
         receiver.friendRequests.push({ from: senderId, status: "pending" });
         await receiver.save();
 
+        await Notification.create({
+            user: receiverId,
+            fromUser: senderId,
+            type: "REQUEST_SENT",
+            isRead: false,
+        });
 
         res.status(200).json({ message: "Friend request sent successfully." });
     } catch (error) {
@@ -61,7 +68,12 @@ exports.acceptFriendRequest = async (req, res) => {
         await receiver.save();
         await sender.save();
 
-
+        await Notification.create({
+            user: senderId,
+            fromUser: receiverId,
+            type: "REQUEST_ACCEPTED",
+            isRead: false,
+        });
 
         res.status(200).json({
             message: "Friend request accepted.",
@@ -92,6 +104,13 @@ exports.rejectFriendRequest = async (req, res) => {
 
         request.status = "rejected";
         await receiver.save();
+
+        await Notification.create({
+            user: receiverId,
+            fromUser: senderId,
+            type: "REQUEST_REJECTED",
+            isRead: false,
+        });
 
         res.status(200).json({ message: "Friend request rejected." });
     } catch (error) {
@@ -152,14 +171,41 @@ exports.getFriendRequests = async (req, res) => {
             .select("friendRequests");
         user.friendRequests = user.friendRequests.reverse();
 
+        await Notification.updateMany(
+            { user: req.user.id, isRead: false },
+            { $set: { isRead: true } }
+        );
+
+        // const notifications = await Notification.find({
+        //     user: req.user.id
+        // }).sort({ createdAt: -1 });
+
         if (!user) return res.status(404).json({ message: "User not found." });
 
-        const pending = user.friendRequests.filter((req) => req.status === "pending");
+        // const pending = user.friendRequests.filter((req) => req.status === "pending");
 
         res.status(200).json({
             message: "Pending requests fetched successfully.",
             requests: user,
         });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({
+            user: req.user.id,
+            isRead: false
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json({
+            notify: notifications.length > 0,
+            count: notifications.length,
+            notifications
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
