@@ -46,16 +46,19 @@ exports.signup = catchAsync(async (req, res, next) => {
         username,
         password: hashedPassword,
         image,
+        isVerified: true
     });
 
     const token = createToken(newUser._id, newUser.email);
 
-    const url = `http://localhost:5173/verify/${token}`;
-    await transporter.sendMail({
-        to: email,
-        subject: 'Hello from ChitChat, Verify Your Email',
-        html: `Click <a href="${url}">here</a> to verify your email.`,
-    });
+    // I have Just Comment this out for the connection timeout 
+
+    // const url = `http://localhost:5173/verify/${token}`;
+    // await transporter.sendMail({
+    //     to: email,
+    //     subject: 'Hello from ChitChat, Verify Your Email',
+    //     html: `Click <a href="${url}">here</a> to verify your email.`,
+    // });
 
     newUser.password = undefined;
 

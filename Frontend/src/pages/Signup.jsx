@@ -76,6 +76,13 @@ const Signup = () => {
           theme: "dark",
         }
       );
+      dispatch(
+        setUser({
+          user: res?.data?.data?.user,
+          token: res?.data?.token,
+        })
+      );
+      navigate("/");
 
       // Update Redux
       // dispatch(setUser(res.data.data.user));
