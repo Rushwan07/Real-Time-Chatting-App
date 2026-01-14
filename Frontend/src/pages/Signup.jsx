@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useFirebaseUpload from "../hooks/use-firebaseUploads";
+import Loader from "../components/Loader";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -15,16 +16,20 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [file, setFile] = useState(null); // stores File object
-  const [imageURL, setImageURL] = useState(""); // stores uploaded Firebase URL
+  const [imageURL, setImageURL] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   // Firebase upload hook
 
   const handleSignup = async () => {
+    setLoading(true);
     try {
       if (!name.trim() || !email.trim() || !password.trim()) {
         toast.error("Enter valid credentials");
+        setLoading(false);
+
         return;
       }
 
@@ -47,12 +52,16 @@ const Signup = () => {
           },
           icon: "⚠️",
         });
+        setLoading(false);
+
         return;
       }
 
       // Ensure image is uploaded before sending signup
       if (file && !imageURL) {
         toast.info("Please wait for image upload to complete!");
+        setLoading(false);
+
         return;
       }
 
@@ -76,6 +85,8 @@ const Signup = () => {
           theme: "dark",
         }
       );
+      setLoading(false);
+
       dispatch(
         setUser({
           user: res?.data?.data?.user,
@@ -90,6 +101,7 @@ const Signup = () => {
       toast.error(error.response?.data?.message || "Something went wrong!");
       console.log(error);
     }
+    setLoading(false);
   };
   const { progress, error, downloadURL } = useFirebaseUpload(file);
 
@@ -165,9 +177,17 @@ const Signup = () => {
           <button
             type="submit"
             onClick={handleSignup}
-            className="w-full bg-[#08CB00] text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-600 transition-all"
+            disabled={loading}
+            className={`
+    w-full h-[50px] py-3 rounded-lg text-lg font-semibold transition-all
+    ${
+      loading
+        ? "bg-[#08CB00] cursor-not-allowed"
+        : "bg-[#08CB00] hover:bg-green-600 text-white"
+    }
+  `}
           >
-            Create Account
+            {loading ? <Loader s={3} c={"#F5F5F0"} /> : "Create Account"}
           </button>
         </div>
 

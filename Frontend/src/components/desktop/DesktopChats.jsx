@@ -80,7 +80,7 @@ const DesktopChats = ({
                 </h4>
                 {isAlreadyFriend && (
                   <h5 className="truncate w-[170px] md:w-[65vw] lg:w-[170px] text-gray-600">
-                    Lorem ipsum dolor sit amet.
+                    This part is under development!!
                   </h5>
                 )}
               </div>
@@ -89,9 +89,9 @@ const DesktopChats = ({
             <div className="flex flex-col justify-center items-center w-[20%] gap-1">
               {isAlreadyFriend ? (
                 <div className="text-center w-[20%] flex justify-center items-center flex-wrap">
-                  <h4 className="text-[#08CB00] w-full">8:13pm</h4>
+                  {/* <h4 className="text-[#08CB00] w-full">8:13pm</h4> */}
                   <h4 className="text-[#08CB00] font-bold rounded-[50px] w-full">
-                    6
+                    ●
                   </h4>
                 </div>
               ) : FriendRequest ? (
@@ -103,8 +103,11 @@ const DesktopChats = ({
                 </button>
               ) : (
                 <button
-                  onClick={() => HandleFriendRequests(friend?._id)}
-                  className="bg-[#08CB00] text-[1.2rem] font-bold text-white px-4 py-1 rounded text-sm hover:bg-green-600 transition"
+                  onClick={(e) => {
+                    e.currentTarget.innerText = "Requested";
+                    HandleFriendRequests(friend?._id);
+                  }}
+                  className="bg-[#08CB00] text-white px-4 py-1 rounded active:scale-95 transition"
                 >
                   Add
                 </button>

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { setUser } from "../features/Auth/userSlice";
 import axios from "axios";
+import Loader from "../components/Loader";
 
 const Login = () => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -12,79 +13,42 @@ const Login = () => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignin = async () => {
-    try {
-      if (email.trim().length === 0 || password.trim().length === 0) {
-        toast.error("Enter valid credentials", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          style: {
-            backgroundColor: "#FF4C4C", // red color for error
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "10px",
-            padding: "16px",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-          },
-          icon: "⚠️", // warning emoji
-        });
-        return;
-      }
-      if (password.trim().length < 8) {
-        toast.error("Password length must be greater than 8", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          style: {
-            backgroundColor: "#FF4C4C", // red color for error
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "10px",
-            padding: "16px",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-          },
-          icon: "⚠️", // warning emoji
-        });
-        return;
-      }
+    if (email.trim().length === 0 || password.trim().length === 0) {
+      toast.error("Enter valid credentials");
+      return;
+    }
 
+    if (password.trim().length < 8) {
+      toast.error("Password length must be greater than 8");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
       const res = await axios.post(BASE_URL + "/users/signin", {
         email: email.trim(),
         password,
       });
-      toast.success("Signin successfully", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
-      if (res) {
-        // dispatch(setUser(res.data.data.user));
-        dispatch(
-          setUser({
-            user: res?.data?.data?.user,
-            token: res?.data?.token,
-          })
-        );
-        navigate("/");
-      }
+
+      toast.success("Signin successfully");
+
+      dispatch(
+        setUser({
+          user: res?.data?.data?.user,
+          token: res?.data?.token,
+        })
+      );
+
+      navigate("/");
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong!");
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,9 +90,17 @@ const Login = () => {
           <button
             type="submit"
             onClick={handleSignin}
-            className="w-full bg-[#08CB00] text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-600 transition-all"
+            disabled={loading}
+            className={`
+    w-full h-[50px] py-3 rounded-lg text-lg font-semibold transition-all
+    ${
+      loading
+        ? "bg-[#08CB00] cursor-not-allowed"
+        : "bg-[#08CB00] hover:bg-green-600 text-white"
+    }
+  `}
           >
-            Login
+            {loading ? <Loader s={3} c={"#F5F5F0"} /> : "Login"}
           </button>
         </div>
 

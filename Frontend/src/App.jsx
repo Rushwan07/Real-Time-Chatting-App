@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MessegeArea from "./components/MessegeArea";
 import Desktop from "./pages/desktop";
 import Mobile from "./pages/mobile";
@@ -11,17 +11,24 @@ import {
   useParams,
   Navigate,
 } from "react-router-dom";
+import { setUser } from "./features/Auth/userSlice";
+
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Messege from "./pages/Messege";
 import useFriends from "./hooks/useFriends";
 import FavoriteModal from "./components/FavoriteModal";
+import axios from "axios";
 
 function App() {
   const { user, token } = useSelector(
     (state) => state?.user?.user || { user: null, token: null }
   );
+  const dispatch = useDispatch();
+
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+
   console.log("USER>>>", user);
   const friendsHook = useFriends();
 
@@ -35,6 +42,38 @@ function App() {
     return <MessegeArea Id={id} setId={setId} />;
   }
 
+  useEffect(() => {
+    if (!token) return;
+    const fetRequests = async () => {
+      // setLoading(true);
+
+      try {
+        const res2 = await axios.get(`${BASE_URL}/friends/`, {
+          headers: { token },
+        });
+
+        console.log("FIRENDS ", res2.data.friends);
+        dispatch(
+          setUser({
+            user: {
+              ...user,
+              friends: Array.isArray(res2?.data?.friends)
+                ? res2.data.friends.map((f) => f._id ?? f)
+                : user.friends,
+            },
+            token: token,
+          })
+        );
+
+        console.log("res2?.data?.friends", res2?.data?.friends);
+        friendsHook.setFriends(res2?.data?.friends);
+
+        // setLoading(false);
+      } catch (error) {}
+    };
+
+    fetRequests();
+  }, [token]);
   console.log("friendsHook", friendsHook);
   return (
     <div className="">

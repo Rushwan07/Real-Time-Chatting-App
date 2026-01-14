@@ -10,6 +10,7 @@ import io from "socket.io-client";
 import { motion } from "motion/react";
 import { setUser } from "../features/Auth/userSlice";
 import { toast } from "react-toastify";
+import Loader from "./Loader";
 
 const socket = io(import.meta.env.VITE_BASE_URL2);
 
@@ -31,6 +32,7 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState(null);
   const typingTimeoutRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   const senderId = user?._id; // logged in user
   const receiverId = Id;
@@ -91,6 +93,7 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
   // 🔹 Fetch messages + friend data
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [friendRes, msgRes] = await Promise.all([
           axios.get(`${BASE_URL}/users/getuser/${Id}`, {
@@ -105,6 +108,8 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
         setMessages(msgRes.data?.data?.messages || []);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -178,11 +183,12 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
         setUser({
           user: {
             ...user,
-            friends: user.friends.map((f) => f._id !== Id),
+            friends: user.friends.filter((f) => f._id !== Id),
           },
-          token: token,
+          token,
         })
       );
+
       setId(null);
       setFriends((prev) => prev.filter((f) => f._id !== friend._id));
     } catch (err) {
@@ -190,7 +196,13 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
     }
   };
 
-  if (friend.length == 0) {
+  if (loading) {
+    return (
+      <div className="h-[100vh] flex items-center justify-center">
+        <Loader s={3} />
+      </div>
+    );
+  } else if (friend.length == 0) {
     return (
       <div>
         <div className="flex justify-between items-center gap-3 p-3 border-b-2 shadow-sm">
