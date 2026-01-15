@@ -12,8 +12,7 @@ import { setUser } from "../features/Auth/userSlice";
 import { toast } from "react-toastify";
 import Loader from "./Loader";
 
-const socket = io(import.meta.env.VITE_BASE_URL2);
-
+const socket = io("https://real-time-chatting-app-backend.onrender.com");
 const MessegeArea = ({ Id, setId, setFriends }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const { user, token } = useSelector(
