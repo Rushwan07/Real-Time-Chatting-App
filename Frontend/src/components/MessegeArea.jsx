@@ -223,7 +223,7 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col bg-white">
+    <div className="w-full h-[100dvh] flex flex-col bg-white">
       {/* Header */}
       <div className="flex fixed top-0 w-full lg:w-[69%] bg-white justify-between items-center gap-3 p-3 border-b-2 shadow-sm">
         <div className="flex items-center gap-3">
