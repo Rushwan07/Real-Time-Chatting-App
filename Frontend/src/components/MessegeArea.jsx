@@ -305,10 +305,10 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
           </motion.button>
         </Link>
       </div>
-
+      {/* Messege area */}
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2"
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 mb-[70px]"
       >
         {messages.map((msg, i) => {
           const isSender =
@@ -358,7 +358,9 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
       </div>
 
       {/* Footer */}
-      <div className="border-t-2 p-3 flex items-center gap-2">
+      {/* <div className="fixed bottom-0 left-0 right-0 border-t-2 p-3 flex items-center gap-2 bg-white"> */}
+
+      <div className="fixed bottom-0 w-full lg:w-[69%] bg-white border-t-2 p-3 flex items-center gap-2">
         <button
           type="button"
           className="text-2xl"
