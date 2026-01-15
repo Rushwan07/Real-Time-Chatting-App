@@ -225,7 +225,12 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
   return (
     <div className="w-full h-[100dvh] flex flex-col bg-white">
       {/* Header */}
-      <div className="flex fixed top-0 w-full lg:w-[69%] bg-white justify-between items-center gap-3 p-3 border-b-2 shadow-sm">
+      <div
+        onClick={() => {
+          setShowPicker(false);
+        }}
+        className="flex fixed top-0 w-full lg:w-[69%] bg-white justify-between items-center gap-3 p-3 border-b-2 shadow-sm"
+      >
         <div className="flex items-center gap-3">
           <Link to={"/"}>
             <div className="cursor-pointer" onClick={() => setId(null)}>
@@ -307,8 +312,11 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
       </div>
       {/* Messege area */}
       <div
+        onClick={() => {
+          setShowPicker(false);
+        }}
         ref={chatRef}
-        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 mb-[70px]"
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 mb-[70px] mt-[70px]"
       >
         {messages.map((msg, i) => {
           const isSender =
@@ -364,7 +372,10 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
         <button
           type="button"
           className="text-2xl"
-          onClick={() => setShowPicker((prev) => !prev)}
+          onClick={() => {
+            document.activeElement?.blur();
+            setShowPicker((prev) => !prev);
+          }}
         >
           <MoodIcon fontSize="large" />
         </button>
