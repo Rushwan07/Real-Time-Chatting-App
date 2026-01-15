@@ -362,11 +362,11 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
                 </p>
 
                 {/* ✅ Only show Sent/Delivered (not Seen) */}
-                {isSender && isSent && (
+                {/* {isSender && isSent && (
                   <p className="text-[0.7rem] text-gray-500 mt-1">
                     {msg.status === "delivered" ? "📨 Delivered" : "🕓 Sent"}
                   </p>
-                )}
+                )} */}
               </div>
             </div>
           );

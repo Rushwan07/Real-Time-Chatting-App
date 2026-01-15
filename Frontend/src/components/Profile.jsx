@@ -160,12 +160,12 @@ const Profile = ({ closeProfile }) => {
           <p className="text-sm text-green-600 mt-1">Upload complete ✅</p>
         )}
         {/* User Info */}
-        <div className="text-center md:text-left space-y-4">
+        <div className="text-center md:text-left space-y-1 overflow-hidden">
           <h1 className="text-4xl font-bold text-[#08CB00] tracking-wide">
             {user?.username}
           </h1>
-          <h2 className="text-3xl text-gray-700 font-medium">{user?.email}</h2>
-          <p className="text-2xl text-gray-600 font-medium">
+          <h2 className="text-2xl text-gray-700 font-medium">{user?.email}</h2>
+          <p className="text-3xl text-gray-600 font-medium">
             Friends:{" "}
             <span className="text-[#08CB00] font-semibold">
               {user?.friends?.length}
