@@ -195,6 +195,14 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
     }
   };
 
+  // useEffect(() => {
+  //   if (showPicker) {
+  //     setTimeout(() => {
+  //       document.activeElement?.blur();
+  //     }, 0);
+  //   }
+  // }, [showPicker]);
+
   if (loading) {
     return (
       <div className="h-[100vh] flex items-center justify-center">
@@ -373,7 +381,6 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
           type="button"
           className="text-2xl"
           onClick={() => {
-            document.activeElement?.blur();
             setShowPicker((prev) => !prev);
           }}
         >
@@ -381,8 +388,11 @@ const MessegeArea = ({ Id, setId, setFriends }) => {
         </button>
 
         {showPicker && (
-          <div className="absolute bottom-16 left-2 z-50">
-            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          <div
+            onClick={document.activeElement?.blur()}
+            className="absolute bottom-16 left-2 z-50"
+          >
+            <EmojiPicker searchDisabled onEmojiClick={handleEmojiClick} />
           </div>
         )}
 
